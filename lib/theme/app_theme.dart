@@ -26,8 +26,8 @@ class AppTheme {
         ),
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.surface,
-        foregroundColor: AppColors.navy,
+        backgroundColor: Color(0xFFFDF6E3), // Solarized base3 (cream)
+        foregroundColor: Color(0xFF073642), // Solarized base02 (dark blue-gray)
         elevation: 0,
         centerTitle: true,
       ),

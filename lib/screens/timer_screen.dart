@@ -41,6 +41,10 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   final List<_DecibelReading> _decibelReadings = [];
   static const _smoothingWindowDuration = Duration(seconds: 1);
 
+  // 10-second window for sustained elevated noise detection
+  final List<_DecibelReading> _longTermReadings = [];
+  static const _longTermWindowDuration = Duration(seconds: 10);
+
   // Sustained noise tracking for reset
   DateTime? _firstThresholdExceededTime;
   static const _sustainedNoiseDuration = Duration(seconds: 2);
@@ -109,10 +113,15 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   void _addDecibelReading(double value) {
     final now = DateTime.now();
     _decibelReadings.add(_DecibelReading(value, now));
+    _longTermReadings.add(_DecibelReading(value, now));
 
-    // Remove readings older than 1 second
+    // Remove readings older than 1 second from short-term window
     _decibelReadings.removeWhere((reading) =>
         now.difference(reading.timestamp) > _smoothingWindowDuration);
+
+    // Remove readings older than 10 seconds from long-term window
+    _longTermReadings.removeWhere((reading) =>
+        now.difference(reading.timestamp) > _longTermWindowDuration);
   }
 
   double _getSmoothedDecibels() {
@@ -120,6 +129,20 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
 
     // Calculate median
     final values = _decibelReadings.map((r) => r.value).toList()..sort();
+    final middle = values.length ~/ 2;
+
+    if (values.length % 2 == 0) {
+      return (values[middle - 1] + values[middle]) / 2;
+    } else {
+      return values[middle];
+    }
+  }
+
+  double _getLongTermMedianDecibels() {
+    if (_longTermReadings.isEmpty) return 0.0;
+
+    // Calculate median over 10-second window
+    final values = _longTermReadings.map((r) => r.value).toList()..sort();
     final middle = values.length ~/ 2;
 
     if (values.length % 2 == 0) {
@@ -222,20 +245,30 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
           });
 
           if (_isRunning && !_isCompleted) {
+            // Check 10-second median for sustained elevated noise
+            final longTermMedian = _getLongTermMedianDecibels();
+            if (longTermMedian >= widget.settings.decibelThreshold) {
+              debugPrint('10-second median ($longTermMedian dB) exceeds threshold - RESET!');
+              _resetTimer();
+              _triggerHapticFeedback(intensity: 3);
+              _firstThresholdExceededTime = null;
+              return; // Skip further checks after reset
+            }
+
             if (smoothedDb >= widget.settings.decibelThreshold) {
               // Start red blink if not already blinking
               if (!_backgroundBlinkController.isAnimating) {
                 _backgroundBlinkController.forward();
               }
 
-              // Track sustained high noise
+              // Track sustained high noise (2-second immediate loud noise)
               if (_firstThresholdExceededTime == null) {
                 _firstThresholdExceededTime = DateTime.now();
                 debugPrint('Threshold exceeded, starting sustained noise timer...');
               } else {
                 final sustainedDuration = DateTime.now().difference(_firstThresholdExceededTime!);
                 if (sustainedDuration >= _sustainedNoiseDuration) {
-                  debugPrint('Sustained noise for ${sustainedDuration.inSeconds}s - RESET!');
+                  debugPrint('Sustained loud noise for ${sustainedDuration.inSeconds}s - RESET!');
                   _resetTimer();
                   _triggerHapticFeedback(intensity: 3);
                   _firstThresholdExceededTime = null;
@@ -360,6 +393,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     _timer?.cancel();
     _stopMonitoring();
     _decibelReadings.clear();
+    _longTermReadings.clear();
     _firstThresholdExceededTime = null;
     _lastWarningVibrationTime = null;
     _backgroundBlinkController.stop();
@@ -377,6 +411,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     _timer?.cancel();
     _stopMonitoring();
     _decibelReadings.clear();
+    _longTermReadings.clear();
     _firstThresholdExceededTime = null;
     _lastWarningVibrationTime = null;
     _backgroundBlinkController.stop();
@@ -467,13 +502,15 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     final l10n = AppLocalizations.of(context)!;
 
     if (!_hasPermission) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(32.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.mic_off, size: 80, color: AppColors.navy.withValues(alpha: 0.4)),
+      return Container(
+        color: const Color(0xFFFDF6E3), // Solarized base3 (cream)
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.mic_off, size: 80, color: const Color(0xFF073642).withValues(alpha: 0.4)),
               const SizedBox(height: 24),
               Text(
                 l10n.microphoneAccessRequired,
@@ -494,8 +531,9 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 ),
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
       );

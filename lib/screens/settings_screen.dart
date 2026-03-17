@@ -6,8 +6,13 @@ import '../theme/app_colors.dart';
 
 class SettingsScreen extends StatefulWidget {
   final AppSettings settings;
+  final Function(String?)? onLanguageChanged;
 
-  const SettingsScreen({super.key, required this.settings});
+  const SettingsScreen({
+    super.key,
+    required this.settings,
+    this.onLanguageChanged,
+  });
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
@@ -59,6 +64,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFFDF6E3), // Solarized base3 (cream)
       appBar: AppBar(
         title: Text(l10n.settings),
         actions: [
@@ -102,6 +108,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       setState(() {
                         _languageCode = newSelection.first;
                       });
+                      // Immediately apply language change
+                      widget.onLanguageChanged?.call(_languageCode);
                     },
                   ),
                 ],

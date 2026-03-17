@@ -108,7 +108,17 @@ class _MainScreenState extends State<MainScreen> {
     final result = await Navigator.push<AppSettings>(
       context,
       MaterialPageRoute(
-        builder: (context) => SettingsScreen(settings: _settings),
+        builder: (context) => SettingsScreen(
+          settings: _settings,
+          onLanguageChanged: (String? languageCode) {
+            // Immediately update locale when language is changed
+            if (languageCode != null) {
+              widget.onLocaleChanged(Locale(languageCode));
+            } else {
+              widget.onLocaleChanged(null); // Use system default
+            }
+          },
+        ),
       ),
     );
     if (result != null) {
@@ -124,6 +134,7 @@ class _MainScreenState extends State<MainScreen> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
+      backgroundColor: const Color(0xFFFDF6E3), // Solarized base3 (cream)
       appBar: AppBar(
         title: Text(l10n.appTitle),
         actions: [

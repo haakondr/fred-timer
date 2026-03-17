@@ -26,11 +26,15 @@ Fred is a countdown timer that monitors ambient noise levels using the device mi
 
 **2. Noise Monitoring**
 - Real-time microphone monitoring using `noise_meter` package
-- **Median smoothing**: 1-second sliding window to filter out transient spikes
-- **Sustained noise detection**: 2-second threshold required before reset (prevents false triggers from coughs/spikes)
+- **Dual-window median smoothing**:
+  - 1-second window: Filters transient spikes (coughs, single noises)
+  - 10-second window: Detects sustained elevated noise levels
+- **Dual reset triggers**:
+  - Immediate: 2-second sustained loud noise above threshold
+  - Elevated: 10-second median exceeds threshold (catches general high volume)
 - Default thresholds:
   - Warning: 75 dB (visual + haptic feedback)
-  - Reset: 80 dB (sustained for 2 seconds)
+  - Reset: 80 dB (either trigger)
 
 **3. Visual Feedback**
 - **Alsamixer-style vertical meter** (160px wide, 200px tall, 25 blocks):
@@ -89,12 +93,16 @@ Fred is a countdown timer that monitors ambient noise levels using the device mi
 
 **Noise Processing Pipeline**
 1. Raw dB reading from microphone
-2. Add to 1-second sliding window
-3. Calculate median value (removes spikes)
-4. Check if exceeds warning threshold → haptic + visual feedback
-5. Check if exceeds reset threshold → start 2-second sustained timer
-6. If sustained for 2 seconds → reset timer + triple vibration
-7. If drops below threshold → cancel sustained timer
+2. Add to both sliding windows:
+   - 1-second window for instant smoothing
+   - 10-second window for elevated noise detection
+3. Calculate 1-second median value (instant display + removes spikes)
+4. Check 10-second median → if exceeds threshold → immediate reset
+5. Check 1-second median:
+   - If exceeds warning threshold → haptic + visual feedback
+   - If exceeds reset threshold → start 2-second sustained timer
+   - If sustained for 2 seconds → reset timer + triple vibration
+   - If drops below threshold → cancel sustained timer
 
 **Animation Controllers**
 - `_celebrationController`: Kaleidoscope color explosion (4s, looping)
