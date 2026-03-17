@@ -8,7 +8,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:vibration/vibration.dart';
 import '../models/app_settings.dart';
 import '../theme/app_colors.dart';
-import '../widgets/fireworks_painter.dart';
+import '../widgets/kaleidoscope_painter.dart';
 
 class _DecibelReading {
   final double value;
@@ -53,7 +53,6 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   late AnimationController _warningController;
   late AnimationController _backgroundBlinkController;
   late AnimationController _resetAnimationController;
-  List<Firework> _fireworks = [];
 
   @override
   void initState() {
@@ -61,12 +60,11 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     _noiseMeter = NoiseMeter();
     _remainingSeconds = widget.settings.timerDurationMinutes * 60;
     _celebrationController = AnimationController(
-      duration: const Duration(seconds: 3),
+      duration: const Duration(seconds: 4),
       vsync: this,
     )..addStatusListener((status) {
         if (status == AnimationStatus.completed && _isCompleted) {
-          // Loop fireworks
-          _generateFireworks();
+          // Loop kaleidoscope animation
           _celebrationController.forward(from: 0.0);
         }
       });
@@ -375,20 +373,6 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     _resetAnimationController.forward(from: 0.0);
   }
 
-  void _generateFireworks() {
-    final random = Random();
-    _fireworks = List.generate(5, (index) {
-      return Firework(
-        startPosition: Offset(
-          50 + random.nextDouble() * 300,
-          100 + random.nextDouble() * 200,
-        ),
-        startTime: index * 0.3,
-        duration: 1.5,
-      );
-    });
-  }
-
   void _completeTimer() {
     _timer?.cancel();
     _stopMonitoring();
@@ -401,7 +385,6 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       _isRunning = false;
       _isCompleted = true;
     });
-    _generateFireworks();
     _celebrationController.forward();
     _triggerHapticFeedback(intensity: 3);
   }
@@ -414,7 +397,6 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     });
     _celebrationController.stop();
     _celebrationController.reset();
-    _fireworks.clear();
   }
 
   String _formatTime(int seconds) {
@@ -793,14 +775,13 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       ),
       child: Stack(
         children: [
-          // Fireworks animation
+          // Kaleidoscope color explosion animation
           AnimatedBuilder(
             animation: _celebrationController,
             builder: (context, child) {
               return CustomPaint(
-                painter: FireworksPainter(
+                painter: KaleidoscopePainter(
                   animation: _celebrationController,
-                  fireworks: _fireworks,
                 ),
                 size: Size.infinite,
               );

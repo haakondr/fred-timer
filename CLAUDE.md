@@ -49,7 +49,13 @@ Fred is a countdown timer that monitors ambient noise levels using the device mi
 
 **5. Completion Celebration**
 - Light cream background (Solarized base3)
-- Sparkling fireworks animation (5 fireworks, 40 particles each with physics)
+- **Kaleidoscope color explosion** animation:
+  - 8-way radial symmetry with rotating/pulsing patterns
+  - Layered geometric shapes (triangles, circles, diamonds)
+  - Expanding color wave rings
+  - Sparkle particles bursting outward
+  - All colors from Solarized palette
+  - 4-second looping animation
 - Localized success message: "Timer Complete!" / "Bra jobba!"
 - Restart button to begin again
 
@@ -91,10 +97,19 @@ Fred is a countdown timer that monitors ambient noise levels using the device mi
 7. If drops below threshold → cancel sustained timer
 
 **Animation Controllers**
-- `_celebrationController`: Fireworks animation (3s, looping)
+- `_celebrationController`: Kaleidoscope color explosion (4s, looping)
 - `_warningController`: Deprecated (was for warning animations)
 - `_backgroundBlinkController`: Background color blink (500ms oscillate)
 - `_resetAnimationController`: Timer scale/blink on reset (5s)
+
+**Key Widgets**
+- `lib/widgets/kaleidoscope_painter.dart`: Custom painter for completion celebration
+  - 8-way radial symmetry pattern
+  - Layered geometric shapes (triangles, circles, diamonds)
+  - Expanding color wave rings
+  - Sparkle particle effects
+  - Uses all Solarized palette colors
+  - Rotating and pulsing animations
 
 ## Critical Build Requirements
 
