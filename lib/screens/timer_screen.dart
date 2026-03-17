@@ -63,6 +63,11 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   Timer? _confettiSpawnTimer;
   Timer? _physicsUpdateTimer;
 
+  // Milestone tracking for confetti
+  bool _reached50Percent = false;
+  bool _reached25Percent = false;
+  bool _reached10Percent = false;
+
   @override
   void initState() {
     super.initState();
@@ -170,12 +175,12 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   @override
   void didUpdateWidget(TimerScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.settings.timerDurationMinutes != widget.settings.timerDurationMinutes) {
-      if (!_isRunning) {
-        setState(() {
-          _remainingSeconds = widget.settings.timerDurationMinutes * 60;
-        });
-      }
+    // Reset timer if any settings changed
+    if (oldWidget.settings.timerDurationMinutes != widget.settings.timerDurationMinutes ||
+        oldWidget.settings.decibelThreshold != widget.settings.decibelThreshold ||
+        oldWidget.settings.warningThreshold != widget.settings.warningThreshold) {
+      // Stop and reset timer
+      _stopAndReset();
     }
   }
 
@@ -373,6 +378,9 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     setState(() {
       _isRunning = true;
       _isCompleted = false;
+      _reached50Percent = false;
+      _reached25Percent = false;
+      _reached10Percent = false;
     });
 
     // Keep screen on while timer is running
@@ -380,11 +388,30 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
 
     _startMonitoring();
 
+    // Initialize physics world for confetti
+    final screenSize = MediaQuery.of(context).size;
+    _confettiPhysics = ConfettiPhysicsWorld(screenSize: screenSize);
+
+    // Start physics update timer
+    _physicsUpdateTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+      if (!mounted || _confettiPhysics == null) {
+        return;
+      }
+
+      // Continue physics while running or completed
+      if (_isRunning || _isCompleted) {
+        setState(() {
+          _confettiPhysics!.step(0.016); // 60 FPS
+        });
+      }
+    });
+
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (mounted) {
         setState(() {
           if (_remainingSeconds > 0) {
             _remainingSeconds--;
+            _checkConfettiMilestones();
           } else {
             _completeTimer();
           }
@@ -406,12 +433,19 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     _lastWarningVibrationTime = null;
     _backgroundBlinkController.stop();
     _backgroundBlinkController.reset();
+
+    // Pause confetti spawning but keep existing confetti
+    _confettiSpawnTimer?.cancel();
+    _physicsUpdateTimer?.cancel();
   }
 
   void _stopAndReset() {
     setState(() {
       _isRunning = false;
       _remainingSeconds = widget.settings.timerDurationMinutes * 60;
+      _reached50Percent = false;
+      _reached25Percent = false;
+      _reached10Percent = false;
     });
     _timer?.cancel();
     WakelockPlus.disable();
@@ -422,13 +456,85 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     _lastWarningVibrationTime = null;
     _backgroundBlinkController.stop();
     _backgroundBlinkController.reset();
+
+    // Clear confetti
+    _confettiSpawnTimer?.cancel();
+    _physicsUpdateTimer?.cancel();
+    _confettiPhysics?.dispose();
+    _confettiPhysics = null;
   }
 
   void _resetTimer() {
     setState(() {
       _remainingSeconds = widget.settings.timerDurationMinutes * 60;
+      _reached50Percent = false;
+      _reached25Percent = false;
+      _reached10Percent = false;
     });
     _resetAnimationController.forward(from: 0.0);
+
+    // Clear confetti on reset
+    _confettiSpawnTimer?.cancel();
+    _confettiPhysics?.dispose();
+    final screenSize = MediaQuery.of(context).size;
+    _confettiPhysics = ConfettiPhysicsWorld(screenSize: screenSize);
+  }
+
+  void _checkConfettiMilestones() {
+    if (_confettiPhysics == null || !_isRunning) return;
+
+    final totalSeconds = widget.settings.timerDurationMinutes * 60;
+    final elapsedSeconds = totalSeconds - _remainingSeconds;
+    final percentComplete = (elapsedSeconds / totalSeconds);
+    final screenSize = MediaQuery.of(context).size;
+
+    // 50% milestone - light confetti (1 particle per 200ms)
+    if (percentComplete >= 0.50 && !_reached50Percent) {
+      _reached50Percent = true;
+      _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 200);
+    }
+
+    // 25% remaining (75% complete) - moderate confetti (2 particles per 150ms)
+    if (percentComplete >= 0.75 && !_reached25Percent) {
+      _reached25Percent = true;
+      _confettiSpawnTimer?.cancel();
+      _startConfettiSpawn(screenSize, particlesPerSpawn: 2, intervalMs: 150);
+    }
+
+    // 10% remaining (90% complete) - more confetti (3 particles per 120ms)
+    if (percentComplete >= 0.90 && !_reached10Percent) {
+      _reached10Percent = true;
+      _confettiSpawnTimer?.cancel();
+      _startConfettiSpawn(screenSize, particlesPerSpawn: 3, intervalMs: 120);
+    }
+  }
+
+  void _startConfettiSpawn(Size screenSize, {required int particlesPerSpawn, required int intervalMs}) {
+    _confettiSpawnTimer?.cancel();
+    _confettiSpawnTimer = Timer.periodic(Duration(milliseconds: intervalMs), (timer) {
+      if (_confettiPhysics == null || !mounted) {
+        timer.cancel();
+        return;
+      }
+
+      // Only spawn if we haven't hit the total limit
+      if (_confettiPhysics!.confettiBodies.length < 2000) {
+        for (int i = 0; i < particlesPerSpawn; i++) {
+          final random = Random();
+          final x = random.nextDouble() * screenSize.width;
+          final color = randomConfettiColor();
+          final size = random.nextDouble() * 12 + 6;
+          final shape = randomShape();
+
+          _confettiPhysics!.addConfetti(
+            Offset(x, -20),
+            color,
+            size,
+            shape,
+          );
+        }
+      }
+    });
   }
 
   void _completeTimer() {
@@ -447,51 +553,15 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       _isCompleted = true;
     });
 
-    // Create physics world
+    // Physics world already exists from timer, just intensify confetti spawning
     final screenSize = MediaQuery.of(context).size;
-    _confettiPhysics = ConfettiPhysicsWorld(screenSize: screenSize);
 
     // Start the animation controller
     _celebrationController.repeat();
 
-    // Spawn confetti continuously from the top
-    _confettiSpawnTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
-      if (!_isCompleted || !mounted || _confettiPhysics == null) {
-        timer.cancel();
-        return;
-      }
-
-      // Only spawn if we haven't hit the total limit
-      if (_confettiPhysics!.confettiBodies.length < 2000) {
-        // Spawn 3 new particles from random positions at the top
-        for (int i = 0; i < 3; i++) {
-          final random = Random();
-          final x = random.nextDouble() * screenSize.width;
-          final color = randomConfettiColor();
-          final size = random.nextDouble() * 12 + 6;
-          final shape = randomShape();
-
-          _confettiPhysics!.addConfetti(
-            Offset(x, -20),
-            color,
-            size,
-            shape,
-          );
-        }
-      }
-    });
-
-    // Update physics simulation
-    _physicsUpdateTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
-      if (!_isCompleted || !mounted || _confettiPhysics == null) {
-        timer.cancel();
-        return;
-      }
-
-      setState(() {
-        _confettiPhysics!.step(0.016); // 60 FPS
-      });
-    });
+    // Intensify confetti spawning for celebration (3 particles per 100ms)
+    _confettiSpawnTimer?.cancel();
+    _startConfettiSpawn(screenSize, particlesPerSpawn: 3, intervalMs: 100);
 
     _triggerHapticFeedback(intensity: 3);
   }
@@ -506,6 +576,9 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       _remainingSeconds = widget.settings.timerDurationMinutes * 60;
       _isCompleted = false;
       _isRunning = false;
+      _reached50Percent = false;
+      _reached25Percent = false;
+      _reached10Percent = false;
     });
     _celebrationController.stop();
     _celebrationController.reset();
@@ -542,23 +615,23 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     final baseOpacity = 0.3 + (blinkValue * 0.4); // Oscillates 0.3-0.7
 
     if (_currentDecibels >= widget.settings.decibelThreshold) {
-      // Red blink
+      // Fuchsia blink
       return LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          Color(0xFFDC322F).withValues(alpha: baseOpacity), // Solarized red
-          Color(0xFFDC322F).withValues(alpha: baseOpacity * 0.8),
+          Color(0xFFFF1493).withValues(alpha: baseOpacity), // Fuchsia
+          Color(0xFFFF1493).withValues(alpha: baseOpacity * 0.8),
         ],
       );
     } else if (_currentDecibels >= widget.settings.warningThreshold) {
-      // Orange blink
+      // Coral blink
       return LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          Color(0xFFCB4B16).withValues(alpha: baseOpacity), // Solarized orange
-          Color(0xFFCB4B16).withValues(alpha: baseOpacity * 0.8),
+          Color(0xFFFF7F50).withValues(alpha: baseOpacity), // Coral
+          Color(0xFFFF7F50).withValues(alpha: baseOpacity * 0.8),
         ],
       );
     }
@@ -653,6 +726,17 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
                 ),
               ),
             ),
+            // Confetti during timer run
+            if (_confettiPhysics != null && _isRunning)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    painter: ConfettiPhysicsPainter(
+                      physicsWorld: _confettiPhysics!,
+                    ),
+                  ),
+                ),
+              ),
           ],
         );
       },
@@ -664,14 +748,14 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
 
     Color timerColor = const Color(0xFF073642); // Solarized base02 (dark blue-gray)
     if (_currentDecibels >= widget.settings.decibelThreshold) {
-      timerColor = const Color(0xFFDC322F); // Solarized red
+      timerColor = const Color(0xFFFF1493); // Fuchsia
     } else if (_currentDecibels >= widget.settings.warningThreshold) {
-      // Gradient from orange to red based on how close to threshold
+      // Gradient from coral to fuchsia based on how close to threshold
       final ratio = (_currentDecibels - widget.settings.warningThreshold) /
           (widget.settings.decibelThreshold - widget.settings.warningThreshold);
       timerColor = Color.lerp(
-        const Color(0xFFCB4B16), // Solarized orange
-        const Color(0xFFDC322F), // Solarized red
+        const Color(0xFFFF7F50), // Coral
+        const Color(0xFFFF1493), // Fuchsia
         ratio.clamp(0.0, 1.0),
       )!;
     }
@@ -787,11 +871,11 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
                 Color blockColor;
                 if (isFilled) {
                   if (blockIndex >= totalBlocks * 0.8) {
-                    blockColor = const Color(0xFFD33682); // Magenta (top 20%)
+                    blockColor = const Color(0xFFFF1493); // Fuchsia (top 20%)
                   } else if (blockIndex >= totalBlocks * 0.6) {
-                    blockColor = const Color(0xFF6C71C4); // Violet (60-80%)
+                    blockColor = const Color(0xFFFF7F50); // Coral (60-80%)
                   } else {
-                    blockColor = const Color(0xFF859900); // Green (bottom 60%)
+                    blockColor = const Color(0xFFFDB813); // Yellow (bottom 60%)
                   }
                 } else {
                   blockColor = const Color(0xFF002B36); // Solarized base03 (empty)
@@ -885,16 +969,18 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
           // Confetti animation with physics
           if (_confettiPhysics != null)
             Positioned.fill(
-              child: AnimatedBuilder(
-                animation: _celebrationController,
-                builder: (context, child) {
-                  return CustomPaint(
-                    painter: ConfettiPhysicsPainter(
-                      physicsWorld: _confettiPhysics!,
-                    ),
-                    child: Container(),
-                  );
-                },
+              child: IgnorePointer(
+                child: AnimatedBuilder(
+                  animation: _celebrationController,
+                  builder: (context, child) {
+                    return CustomPaint(
+                      painter: ConfettiPhysicsPainter(
+                        physicsWorld: _confettiPhysics!,
+                      ),
+                      child: Container(),
+                    );
+                  },
+                ),
               ),
             ),
           // Restart button at bottom

@@ -287,13 +287,13 @@ enum ConfettiShape {
 }
 
 final _confettiColors = [
-  const Color(0xFF6C71C4), // Solarized violet
-  const Color(0xFF2AA198), // Solarized cyan
-  const Color(0xFFB58900), // Solarized yellow
-  const Color(0xFFCB4B16), // Solarized orange
-  const Color(0xFFDC322F), // Solarized red
-  const Color(0xFF859900), // Solarized green
-  const Color(0xFFD33682), // Solarized magenta
+  const Color(0xFFFDB813), // Yellow (meter bottom)
+  const Color(0xFFFF7F50), // Coral (meter middle)
+  const Color(0xFFFF1493), // Fuchsia (meter top)
+  const Color(0xFF2AA198), // Teal - complement
+  const Color(0xFF6C71C4), // Violet - complement
+  const Color(0xFFFFB347), // Orange - warm tone
+  const Color(0xFFFF69B4), // Hot pink - vibrant accent
 ];
 
 ConfettiShape randomShape() {

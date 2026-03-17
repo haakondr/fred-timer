@@ -8,7 +8,7 @@
 PRODUCT_NAME = quiet_timer
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.quietTimer
+PRODUCT_BUNDLE_IDENTIFIER = app.fred.timer
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.example. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 app.fred.timer. All rights reserved.

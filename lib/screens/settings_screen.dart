@@ -33,7 +33,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _languageCode = widget.settings.languageCode;
   }
 
-  Future<void> _saveSettings() async {
+  Future<void> _saveSettingsWithoutPop() async {
     final prefs = await SharedPreferences.getInstance();
     final newSettings = AppSettings(
       timerDurationMinutes: _timerDuration,
@@ -42,7 +42,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
       languageCode: _languageCode,
     );
     await newSettings.saveToPreferences(prefs);
+  }
+
+  Future<void> _saveSettings() async {
+    await _saveSettingsWithoutPop();
     if (mounted) {
+      final newSettings = AppSettings(
+        timerDurationMinutes: _timerDuration,
+        decibelThreshold: _decibelThreshold,
+        warningThreshold: _warningThreshold,
+        languageCode: _languageCode,
+      );
       Navigator.pop(context, newSettings);
     }
   }
@@ -63,17 +73,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFFDF6E3), // Solarized base3 (cream)
-      appBar: AppBar(
-        title: Text(l10n.settings),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: _saveSettings,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (!didPop) {
+          await _saveSettings();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFFDF6E3), // Solarized base3 (cream)
+        appBar: AppBar(
+          title: Text(l10n.settings),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () async {
+              await _saveSettings();
+            },
           ),
-        ],
-      ),
+        ),
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
@@ -104,12 +121,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ],
                     selected: {_languageCode},
-                    onSelectionChanged: (Set<String?> newSelection) {
+                    onSelectionChanged: (Set<String?> newSelection) async {
                       setState(() {
                         _languageCode = newSelection.first;
                       });
                       // Immediately apply language change
                       widget.onLanguageChanged?.call(_languageCode);
+                      // Save settings
+                      await _saveSettingsWithoutPop();
                     },
                   ),
                 ],
@@ -142,6 +161,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       setState(() {
                         _timerDuration = value.round();
                       });
+                    },
+                    onChangeEnd: (value) async {
+                      await _saveSettingsWithoutPop();
                     },
                   ),
                 ],
@@ -177,6 +199,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           _warningThreshold = _decibelThreshold - 5;
                         }
                       });
+                    },
+                    onChangeEnd: (value) async {
+                      await _saveSettingsWithoutPop();
                     },
                   ),
                   const SizedBox(height: 8),
@@ -216,6 +241,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       setState(() {
                         _warningThreshold = value;
                       });
+                    },
+                    onChangeEnd: (value) async {
+                      await _saveSettingsWithoutPop();
                     },
                   ),
                   const SizedBox(height: 8),
@@ -261,6 +289,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }
