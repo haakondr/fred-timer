@@ -67,6 +67,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   bool _reached50Percent = false;
   bool _reached25Percent = false;
   bool _reached10Percent = false;
+  bool _showRestartButton = false;
 
   @override
   void initState() {
@@ -386,6 +387,9 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     final screenSize = MediaQuery.of(context).size;
     _confettiPhysics = ConfettiPhysicsWorld(screenSize: screenSize);
 
+    // Start confetti rain immediately (very sparse initially)
+    _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 30000);
+
     // Start physics update timer
     _physicsUpdateTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
       if (!mounted || _confettiPhysics == null) {
@@ -396,6 +400,22 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       if (_isRunning || _isCompleted) {
         setState(() {
           _confettiPhysics!.step(0.016); // 60 FPS
+
+          // Check if confetti has reached half screen height on completion
+          if (_isCompleted && !_showRestartButton && _confettiPhysics!.confettiBodies.isNotEmpty) {
+            // Find the highest confetti piece (lowest Y value)
+            double highestY = double.infinity;
+            for (var confetti in _confettiPhysics!.confettiBodies) {
+              if (confetti.position.dy < highestY) {
+                highestY = confetti.position.dy;
+              }
+            }
+
+            // Show button when confetti reaches halfway up the screen
+            if (highestY < screenSize.height / 2) {
+              _showRestartButton = true;
+            }
+          }
         });
       }
     });
@@ -440,6 +460,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       _reached50Percent = false;
       _reached25Percent = false;
       _reached10Percent = false;
+      _showRestartButton = false;
     });
     _timer?.cancel();
     WakelockPlus.disable();
@@ -464,6 +485,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       _reached50Percent = false;
       _reached25Percent = false;
       _reached10Percent = false;
+      _showRestartButton = false;
     });
     _resetAnimationController.forward(from: 0.0);
 
@@ -482,24 +504,25 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     final percentComplete = (elapsedSeconds / totalSeconds);
     final screenSize = MediaQuery.of(context).size;
 
-    // 50% milestone - very light confetti (1 particle per second)
+    // 50% milestone - increase to light confetti (1 particle per 5 seconds)
     if (percentComplete >= 0.50 && !_reached50Percent) {
       _reached50Percent = true;
-      _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 1000);
+      _confettiSpawnTimer?.cancel();
+      _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 5000);
     }
 
-    // 25% remaining (75% complete) - light confetti (1 particle per 600ms)
+    // 75% complete - increase to moderate confetti (1 particle per 2 seconds)
     if (percentComplete >= 0.75 && !_reached25Percent) {
       _reached25Percent = true;
       _confettiSpawnTimer?.cancel();
-      _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 600);
+      _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 2000);
     }
 
-    // 10% remaining (90% complete) - moderate confetti (1 particle per 400ms)
+    // 90% complete - increase to steady confetti (1 particle per second)
     if (percentComplete >= 0.90 && !_reached10Percent) {
       _reached10Percent = true;
       _confettiSpawnTimer?.cancel();
-      _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 400);
+      _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 1000);
     }
   }
 
@@ -545,6 +568,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     setState(() {
       _isRunning = false;
       _isCompleted = true;
+      _showRestartButton = false; // Hide button initially, show when confetti reaches half screen
     });
 
     // Physics world already exists from timer, just intensify confetti spawning
@@ -553,9 +577,9 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     // Start the animation controller
     _celebrationController.repeat();
 
-    // Intensify confetti spawning for celebration (3 particles per 100ms)
+    // Intensify confetti spawning for celebration (2 particles per second)
     _confettiSpawnTimer?.cancel();
-    _startConfettiSpawn(screenSize, particlesPerSpawn: 3, intervalMs: 100);
+    _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 500);
 
     _triggerHapticFeedback(intensity: 3);
   }
@@ -573,6 +597,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       _reached50Percent = false;
       _reached25Percent = false;
       _reached10Percent = false;
+      _showRestartButton = false;
     });
     _celebrationController.stop();
     _celebrationController.reset();
@@ -977,23 +1002,24 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
                 ),
               ),
             ),
-          // Restart button at bottom
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 80.0),
-              child: ElevatedButton.icon(
-                onPressed: _restart,
-                icon: const Icon(Icons.refresh, size: 32),
-                label: Text(l10n.restart, style: const TextStyle(fontSize: 20)),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                  backgroundColor: const Color(0xFF6C71C4), // Solarized violet
-                  foregroundColor: Colors.white,
+          // Restart button at bottom (shown when confetti reaches half screen)
+          if (_showRestartButton)
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 80.0),
+                child: ElevatedButton.icon(
+                  onPressed: _restart,
+                  icon: const Icon(Icons.refresh, size: 32),
+                  label: Text(l10n.restart, style: const TextStyle(fontSize: 20)),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    backgroundColor: const Color(0xFF6C71C4), // Solarized violet
+                    foregroundColor: Colors.white,
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
