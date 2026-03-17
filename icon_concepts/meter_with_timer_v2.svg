@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="#FDF6E3" rx="180"/>
+
+  <!-- Digital timer display at top -->
+  <g transform="translate(512, 200)">
+    <!-- Digital time display "10:00" -->
+    <text x="0" y="0" font-family="monospace" font-size="120" font-weight="bold" fill="#073642" text-anchor="middle">10:00</text>
+  </g>
+
+  <!-- Vertical meter bar below (50% wider) -->
+  <g transform="translate(512, 640)">
+    <!-- Meter background -->
+    <rect x="-210" y="-280" width="420" height="560" fill="#073642" rx="30"/>
+
+    <!-- Filled blocks from bottom up -->
+    <!-- Green blocks (bottom) -->
+    <rect x="-185" y="210" width="370" height="45" fill="#859900" rx="6"/>
+    <rect x="-185" y="155" width="370" height="45" fill="#859900" rx="6"/>
+    <rect x="-185" y="100" width="370" height="45" fill="#859900" rx="6"/>
+    <rect x="-185" y="45" width="370" height="45" fill="#859900" rx="6"/>
+    <rect x="-185" y="-10" width="370" height="45" fill="#859900" rx="6"/>
+    <rect x="-185" y="-65" width="370" height="45" fill="#859900" rx="6"/>
+
+    <!-- Orange blocks (middle) -->
+    <rect x="-185" y="-120" width="370" height="45" fill="#CB4B16" rx="6"/>
+    <rect x="-185" y="-175" width="370" height="45" fill="#CB4B16" rx="6"/>
+
+    <!-- Dark/empty blocks (top) -->
+    <rect x="-185" y="-230" width="370" height="45" fill="#002B36" rx="6"/>
+    <rect x="-185" y="-265" width="370" height="25" fill="#002B36" rx="6" opacity="0.5"/>
+  </g>
+</svg>
