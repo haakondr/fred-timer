@@ -10,6 +10,10 @@ class ConfettiPhysicsWorld {
   // Scale factor: pixels to meters (Box2D works in meters)
   static const double pixelsPerMeter = 100.0;
 
+  // Performance: limit total particles and freeze settled ones
+  static const int maxActiveParticles = 200;
+  static const int maxTotalParticles = 2000; // Allow larger pile to build up
+
   ConfettiPhysicsWorld({required this.screenSize}) {
     // Create physics world with gravity (10 m/s² is realistic earth gravity)
     world = box2d.World(box2d.Vector2(0, 20.0));
@@ -41,15 +45,19 @@ class ConfettiPhysicsWorld {
   }
 
   void _createGround() {
-    // Place ground at the bottom of the screen (top of ground box = screenSize.height)
+    // Place ground so confetti lands visibly at the bottom of the screen
+    // Put the top surface 50 pixels from the bottom to ensure visibility
+    final groundThickness = 100.0; // Thick ground to catch everything
+    final groundYPixels = screenSize.height - 50 + (groundThickness / 2);
+
     final groundDef = box2d.BodyDef()
-      ..position = _toPhysics(Offset(screenSize.width / 2, screenSize.height))
+      ..position = _toPhysics(Offset(screenSize.width / 2, groundYPixels))
       ..type = box2d.BodyType.static;
 
     final groundBody = world.createBody(groundDef);
 
     final groundBox = box2d.PolygonShape()
-      ..setAsBox(_toPhysicsScalar(screenSize.width / 2), _toPhysicsScalar(5.0), box2d.Vector2.zero(), 0);
+      ..setAsBox(_toPhysicsScalar(screenSize.width / 2), _toPhysicsScalar(groundThickness / 2), box2d.Vector2.zero(), 0);
 
     final fixtureDef = box2d.FixtureDef(groundBox)
       ..friction = 0.6
@@ -123,6 +131,51 @@ class ConfettiPhysicsWorld {
   void step(double dt) {
     // Step the physics simulation
     world.stepDt(dt);
+
+    // Freeze particles that have settled (low velocity + many particles above)
+    _freezeSettledParticles();
+
+    // Note: We don't remove frozen particles - they stay visible as part of the pile
+    // The spawning code in timer_screen.dart stops spawning when we hit maxTotalParticles
+  }
+
+  void _freezeSettledParticles() {
+    // Count active (dynamic) particles
+    int activeCount = confettiBodies
+        .where((c) => c.body.bodyType == box2d.BodyType.dynamic)
+        .length;
+
+    // If we have too many active particles, freeze some that are settled
+    if (activeCount > maxActiveParticles) {
+      for (var confetti in confettiBodies) {
+        if (confetti.body.bodyType != box2d.BodyType.dynamic) continue;
+
+        // Check if particle is settled (very low velocity)
+        final velocity = confetti.body.linearVelocity;
+        final speed = velocity.length;
+
+        if (speed < 0.1) {
+          // Count particles above this one
+          int particlesAbove = 0;
+          final thisY = confetti.body.position.y;
+
+          for (var other in confettiBodies) {
+            if (other.body.position.y < thisY) {
+              particlesAbove++;
+            }
+          }
+
+          // Freeze if there are many particles above (this one is buried)
+          if (particlesAbove > 20) {
+            confetti.body.setType(box2d.BodyType.static);
+            activeCount--;
+
+            // Stop once we're under the limit
+            if (activeCount <= maxActiveParticles) break;
+          }
+        }
+      }
+    }
   }
 
   void dispose() {

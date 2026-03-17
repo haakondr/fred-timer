@@ -19,10 +19,10 @@ class AppLocalizationsNb extends AppLocalizations {
 
   @override
   String get microphoneAccessDescription =>
-      'Denne appen trenger tilgang til mikrofonen for å overvåke støynivå og holde orden på stilletid.';
+      'Fred er en timer som måler støynivå. Hvis lydnivå blir for høyt så restartes timer.';
 
   @override
-  String get grantPermission => 'Gi tilgang';
+  String get grantPermission => 'Fred trenger tilgang til mikrofon';
 
   @override
   String get microphonePermissionRequired => 'Mikrofontilgang kreves';

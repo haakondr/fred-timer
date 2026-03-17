@@ -7,6 +7,7 @@ import '../l10n/app_localizations.dart';
 import 'package:noise_meter/noise_meter.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:vibration/vibration.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import '../models/app_settings.dart';
 import '../theme/app_colors.dart';
 import '../widgets/confetti_physics.dart';
@@ -153,6 +154,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
 
   @override
   void dispose() {
+    WakelockPlus.disable();
     _stopMonitoring();
     _timer?.cancel();
     _confettiSpawnTimer?.cancel();
@@ -373,6 +375,9 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       _isCompleted = false;
     });
 
+    // Keep screen on while timer is running
+    WakelockPlus.enable();
+
     _startMonitoring();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -393,6 +398,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       _isRunning = false;
     });
     _timer?.cancel();
+    WakelockPlus.disable();
     _stopMonitoring();
     _decibelReadings.clear();
     _longTermReadings.clear();
@@ -408,6 +414,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       _remainingSeconds = widget.settings.timerDurationMinutes * 60;
     });
     _timer?.cancel();
+    WakelockPlus.disable();
     _stopMonitoring();
     _decibelReadings.clear();
     _longTermReadings.clear();
@@ -426,6 +433,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
 
   void _completeTimer() {
     _timer?.cancel();
+    WakelockPlus.disable();
     _stopMonitoring();
     _decibelReadings.clear();
     _longTermReadings.clear();
@@ -453,20 +461,23 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
         return;
       }
 
-      // Spawn 3 new particles from random positions at the top
-      for (int i = 0; i < 3; i++) {
-        final random = Random();
-        final x = random.nextDouble() * screenSize.width;
-        final color = randomConfettiColor();
-        final size = random.nextDouble() * 12 + 6;
-        final shape = randomShape();
+      // Only spawn if we haven't hit the total limit
+      if (_confettiPhysics!.confettiBodies.length < 2000) {
+        // Spawn 3 new particles from random positions at the top
+        for (int i = 0; i < 3; i++) {
+          final random = Random();
+          final x = random.nextDouble() * screenSize.width;
+          final color = randomConfettiColor();
+          final size = random.nextDouble() * 12 + 6;
+          final shape = randomShape();
 
-        _confettiPhysics!.addConfetti(
-          Offset(x, -20),
-          color,
-          size,
-          shape,
-        );
+          _confettiPhysics!.addConfetti(
+            Offset(x, -20),
+            color,
+            size,
+            shape,
+          );
+        }
       }
     });
 
@@ -722,8 +733,8 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   }
 
   Widget _buildDecibelMeter() {
-    // Calculate percentage based on a reasonable scale (0-100 dB)
-    final percentage = (_currentDecibels / 100).clamp(0.0, 1.0);
+    // Scale to threshold - bar fills completely when threshold is reached
+    final percentage = (_currentDecibels / widget.settings.decibelThreshold).clamp(0.0, 1.0);
     final isWarning = _currentDecibels >= widget.settings.warningThreshold;
     final isOverThreshold = _currentDecibels >= widget.settings.decibelThreshold;
 
@@ -776,9 +787,9 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
                 Color blockColor;
                 if (isFilled) {
                   if (blockIndex >= totalBlocks * 0.8) {
-                    blockColor = const Color(0xFFDC322F); // Red (top 20%)
+                    blockColor = const Color(0xFFD33682); // Magenta (top 20%)
                   } else if (blockIndex >= totalBlocks * 0.6) {
-                    blockColor = const Color(0xFFCB4B16); // Orange (60-80%)
+                    blockColor = const Color(0xFF6C71C4); // Violet (60-80%)
                   } else {
                     blockColor = const Color(0xFF859900); // Green (bottom 60%)
                   }

@@ -27,9 +27,14 @@ class AppTheme {
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: Color(0xFFFDF6E3), // Solarized base3 (cream)
-        foregroundColor: Color(0xFF073642), // Solarized base02 (dark blue-gray)
+        foregroundColor: AppColors.violet, // Purple title
         elevation: 0,
         centerTitle: true,
+        titleTextStyle: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          color: AppColors.violet,
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(

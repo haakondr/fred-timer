@@ -12,11 +12,11 @@
   "@microphoneAccessRequired": {
     "description": "Title for microphone permission screen"
   },
-  "microphoneAccessDescription": "This app needs microphone access to monitor noise levels and keep track of quiet time.",
+  "microphoneAccessDescription": "Fred is a timer that measures noise levels. If the sound level gets too high, the timer resets.\n\nFred means peace in Norwegian.",
   "@microphoneAccessDescription": {
     "description": "Description of why microphone access is needed"
   },
-  "grantPermission": "Grant Permission",
+  "grantPermission": "Fred needs microphone access",
   "@grantPermission": {
     "description": "Button to grant microphone permission"
   },

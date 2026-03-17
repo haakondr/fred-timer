@@ -119,13 +119,13 @@ abstract class AppLocalizations {
   /// Description of why microphone access is needed
   ///
   /// In en, this message translates to:
-  /// **'This app needs microphone access to monitor noise levels and keep track of quiet time.'**
+  /// **'Fred is a timer that measures noise levels. If the sound level gets too high, the timer resets.\n\nFred means peace in Norwegian.'**
   String get microphoneAccessDescription;
 
   /// Button to grant microphone permission
   ///
   /// In en, this message translates to:
-  /// **'Grant Permission'**
+  /// **'Fred needs microphone access'**
   String get grantPermission;
 
   /// Dialog title for permission settings
