@@ -8,7 +8,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:vibration/vibration.dart';
 import '../models/app_settings.dart';
 import '../theme/app_colors.dart';
-import '../widgets/kaleidoscope_painter.dart';
+import '../widgets/confetti_painter.dart';
 
 class _DecibelReading {
   final double value;
@@ -57,6 +57,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   late AnimationController _warningController;
   late AnimationController _backgroundBlinkController;
   late AnimationController _resetAnimationController;
+  List<ConfettiParticle> _confetti = [];
 
   @override
   void initState() {
@@ -64,14 +65,9 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     _noiseMeter = NoiseMeter();
     _remainingSeconds = widget.settings.timerDurationMinutes * 60;
     _celebrationController = AnimationController(
-      duration: const Duration(seconds: 4),
+      duration: const Duration(seconds: 3),
       vsync: this,
-    )..addStatusListener((status) {
-        if (status == AnimationStatus.completed && _isCompleted) {
-          // Loop kaleidoscope animation
-          _celebrationController.forward(from: 0.0);
-        }
-      });
+    );
     _warningController = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -434,6 +430,8 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     setState(() {
       _isRunning = false;
       _isCompleted = true;
+      // Generate confetti particles
+      _confetti = generateConfetti(MediaQuery.of(context).size);
     });
     _celebrationController.forward();
     _triggerHapticFeedback(intensity: 3);
@@ -444,6 +442,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       _remainingSeconds = widget.settings.timerDurationMinutes * 60;
       _isCompleted = false;
       _isRunning = false;
+      _confetti.clear();
     });
     _celebrationController.stop();
     _celebrationController.reset();
@@ -815,44 +814,34 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       ),
       child: Stack(
         children: [
-          // Kaleidoscope color explosion animation
+          // Confetti animation
           AnimatedBuilder(
             animation: _celebrationController,
             builder: (context, child) {
               return CustomPaint(
-                painter: KaleidoscopePainter(
+                painter: ConfettiPainter(
                   animation: _celebrationController,
+                  particles: _confetti,
                 ),
                 size: Size.infinite,
               );
             },
           ),
-          // Content overlay
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  l10n.timerComplete,
-                  style: const TextStyle(
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'monospace',
-                    color: Color(0xFF859900), // Solarized green
-                  ),
+          // Restart button at bottom
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 80.0),
+              child: ElevatedButton.icon(
+                onPressed: _restart,
+                icon: const Icon(Icons.refresh, size: 32),
+                label: Text(l10n.restart, style: const TextStyle(fontSize: 20)),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  backgroundColor: const Color(0xFF6C71C4), // Solarized violet
+                  foregroundColor: Colors.white,
                 ),
-                const SizedBox(height: 48),
-                ElevatedButton.icon(
-                  onPressed: _restart,
-                  icon: const Icon(Icons.refresh, size: 32),
-                  label: Text(l10n.restart, style: const TextStyle(fontSize: 20)),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                    backgroundColor: const Color(0xFF6C71C4), // Solarized violet
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],
