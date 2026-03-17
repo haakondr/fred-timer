@@ -52,6 +52,9 @@ dependencies:
   forge2d: ^0.14.2+1
   wakelock_plus: ^1.5.1
 
+  # Web APIs
+  web: ^1.1.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

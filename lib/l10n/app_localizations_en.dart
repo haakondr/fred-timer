@@ -99,7 +99,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get language => 'Language';
 
   @override
-  String get systemDefault => 'System default';
+  String get systemDefault => 'System';
 
   @override
   String get english => 'English';

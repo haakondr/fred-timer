@@ -99,7 +99,7 @@ class AppLocalizationsNb extends AppLocalizations {
   String get language => 'Språk';
 
   @override
-  String get systemDefault => 'Systemstandard';
+  String get systemDefault => 'System';
 
   @override
   String get english => 'Engelsk';

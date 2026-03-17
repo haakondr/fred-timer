@@ -117,7 +117,7 @@
   "@language": {
     "description": "Language setting label"
   },
-  "systemDefault": "System default",
+  "systemDefault": "System",
   "@systemDefault": {
     "description": "System default language option"
   },

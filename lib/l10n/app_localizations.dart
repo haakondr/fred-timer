@@ -269,7 +269,7 @@ abstract class AppLocalizations {
   /// System default language option
   ///
   /// In en, this message translates to:
-  /// **'System default'**
+  /// **'System'**
   String get systemDefault;
 
   /// English language option

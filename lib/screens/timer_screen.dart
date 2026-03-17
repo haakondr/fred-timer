@@ -4,13 +4,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../l10n/app_localizations.dart';
-import 'package:noise_meter/noise_meter.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:vibration/vibration.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../models/app_settings.dart';
 import '../theme/app_colors.dart';
 import '../widgets/confetti_physics.dart';
+import '../services/audio_monitor_factory.dart';
+import '../services/audio_monitor.dart';
 
 class _DecibelReading {
   final double value;
@@ -29,8 +29,8 @@ class TimerScreen extends StatefulWidget {
 }
 
 class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin {
-  late NoiseMeter _noiseMeter;
-  StreamSubscription<NoiseReading>? _noiseSubscription;
+  late AudioMonitor _audioMonitor;
+  StreamSubscription<double>? _audioSubscription;
   Timer? _timer;
 
   int _remainingSeconds = 0;
@@ -71,7 +71,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   @override
   void initState() {
     super.initState();
-    _noiseMeter = NoiseMeter();
+    _audioMonitor = createAudioMonitor();
     _remainingSeconds = widget.settings.timerDurationMinutes * 60;
     _celebrationController = AnimationController(
       duration: const Duration(minutes: 5),
@@ -107,10 +107,10 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   }
 
   Future<void> _checkPermissionStatus() async {
-    final status = await Permission.microphone.status;
+    final hasPermission = await _audioMonitor.hasPermission();
     if (mounted) {
       setState(() {
-        _hasPermission = status.isGranted;
+        _hasPermission = hasPermission;
       });
     }
   }
@@ -161,6 +161,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   void dispose() {
     WakelockPlus.disable();
     _stopMonitoring();
+    _audioMonitor.dispose();
     _timer?.cancel();
     _confettiSpawnTimer?.cancel();
     _physicsUpdateTimer?.cancel();
@@ -175,10 +176,8 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   @override
   void didUpdateWidget(TimerScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Reset timer if any settings changed
-    if (oldWidget.settings.timerDurationMinutes != widget.settings.timerDurationMinutes ||
-        oldWidget.settings.decibelThreshold != widget.settings.decibelThreshold ||
-        oldWidget.settings.warningThreshold != widget.settings.warningThreshold) {
+    // Reset timer only if duration changed
+    if (oldWidget.settings.timerDurationMinutes != widget.settings.timerDurationMinutes) {
       // Stop and reset timer
       _stopAndReset();
     }
@@ -187,48 +186,40 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   Future<void> _requestPermission() async {
     debugPrint('Requesting microphone permission...');
 
-    // First, try to request permission (will show native iOS prompt if not asked before)
-    var status = await Permission.microphone.request();
-    debugPrint('Permission status after request: $status');
+    try {
+      final granted = await _audioMonitor.requestPermission();
+      debugPrint('Permission granted: $granted');
 
-    // If permission not granted, show dialog to open settings
-    if (!status.isGranted) {
-      debugPrint('Permission not granted, showing settings dialog');
       if (mounted) {
+        setState(() {
+          _hasPermission = granted;
+        });
+      }
+
+      // If not granted, show info dialog (web will show browser permission prompt)
+      if (!granted && mounted) {
         final l10n = AppLocalizations.of(context)!;
-        final shouldOpenSettings = await showDialog<bool>(
+        await showDialog(
           context: context,
           builder: (context) => AlertDialog(
             title: Text(l10n.microphonePermissionRequired),
             content: Text(l10n.pleaseEnableMicrophoneAccess),
             actions: [
               TextButton(
-                onPressed: () => Navigator.pop(context, false),
+                onPressed: () => Navigator.pop(context),
                 child: Text(l10n.cancel),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(l10n.openSettings),
               ),
             ],
           ),
         );
-
-        if (shouldOpenSettings == true) {
-          debugPrint('Opening app settings');
-          await openAppSettings();
-          // After user returns from settings, check permission again
-          status = await Permission.microphone.status;
-          debugPrint('Permission status after returning from settings: $status');
-        }
       }
-    }
-
-    if (mounted) {
-      setState(() {
-        _hasPermission = status.isGranted;
-        debugPrint('Updated _hasPermission to: $_hasPermission');
-      });
+    } catch (e) {
+      debugPrint('Permission request failed: $e');
+      if (mounted) {
+        setState(() {
+          _hasPermission = false;
+        });
+      }
     }
   }
 
@@ -239,10 +230,12 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     }
 
     try {
-      _noiseSubscription = _noiseMeter.noise.listen(
-        (NoiseReading reading) {
-          final db = reading.meanDecibel;
+      // Start audio monitoring
+      _audioMonitor.startMonitoring();
 
+      // Subscribe to decibel stream
+      _audioSubscription = _audioMonitor.decibelStream.listen(
+        (db) {
           // Add to sliding window
           _addDecibelReading(db);
 
@@ -320,17 +313,18 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
           }
         },
         onError: (error) {
-          debugPrint('Noise meter error: $error');
+          debugPrint('Audio monitor error: $error');
         },
       );
     } catch (e) {
-      debugPrint('Error starting noise meter: $e');
+      debugPrint('Error starting audio monitor: $e');
     }
   }
 
   void _stopMonitoring() {
-    _noiseSubscription?.cancel();
-    _noiseSubscription = null;
+    _audioSubscription?.cancel();
+    _audioSubscription = null;
+    _audioMonitor.stopMonitoring();
   }
 
   void _handleWarning(double intensity) {
@@ -356,12 +350,12 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     final hasVibrator = await Vibration.hasVibrator();
     if (hasVibrator == true) {
       if (intensity == 3) {
-        // Heavy reset vibration - triple burst
-        HapticFeedback.heavyImpact();
+        // Heavy reset vibration - triple burst with actual vibration
+        await Vibration.vibrate(duration: 200);
         await Future.delayed(const Duration(milliseconds: 100));
-        HapticFeedback.heavyImpact();
+        await Vibration.vibrate(duration: 200);
         await Future.delayed(const Duration(milliseconds: 100));
-        HapticFeedback.heavyImpact();
+        await Vibration.vibrate(duration: 200);
       } else if (intensity == 2) {
         HapticFeedback.mediumImpact();
       } else {
@@ -488,24 +482,24 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     final percentComplete = (elapsedSeconds / totalSeconds);
     final screenSize = MediaQuery.of(context).size;
 
-    // 50% milestone - light confetti (1 particle per 200ms)
+    // 50% milestone - very light confetti (1 particle per second)
     if (percentComplete >= 0.50 && !_reached50Percent) {
       _reached50Percent = true;
-      _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 200);
+      _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 1000);
     }
 
-    // 25% remaining (75% complete) - moderate confetti (2 particles per 150ms)
+    // 25% remaining (75% complete) - light confetti (1 particle per 600ms)
     if (percentComplete >= 0.75 && !_reached25Percent) {
       _reached25Percent = true;
       _confettiSpawnTimer?.cancel();
-      _startConfettiSpawn(screenSize, particlesPerSpawn: 2, intervalMs: 150);
+      _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 600);
     }
 
-    // 10% remaining (90% complete) - more confetti (3 particles per 120ms)
+    // 10% remaining (90% complete) - moderate confetti (1 particle per 400ms)
     if (percentComplete >= 0.90 && !_reached10Percent) {
       _reached10Percent = true;
       _confettiSpawnTimer?.cancel();
-      _startConfettiSpawn(screenSize, particlesPerSpawn: 3, intervalMs: 120);
+      _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 400);
     }
   }
 
@@ -696,13 +690,24 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     return AnimatedBuilder(
       animation: Listenable.merge([_warningController, _backgroundBlinkController]),
       builder: (context, child) {
-        return Stack(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                gradient: _getBackgroundGradient(),
-              ),
-              child: SafeArea(
+        return Container(
+          decoration: BoxDecoration(
+            gradient: _getBackgroundGradient(),
+          ),
+          child: Stack(
+            children: [
+              // Confetti behind everything
+              if (_confettiPhysics != null && _isRunning)
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: CustomPaint(
+                      painter: ConfettiPhysicsPainter(
+                        physicsWorld: _confettiPhysics!,
+                      ),
+                    ),
+                  ),
+                ),
+              SafeArea(
                 child: SingleChildScrollView(
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
@@ -725,19 +730,8 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
                   ),
                 ),
               ),
-            ),
-            // Confetti during timer run
-            if (_confettiPhysics != null && _isRunning)
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: CustomPaint(
-                    painter: ConfettiPhysicsPainter(
-                      physicsWorld: _confettiPhysics!,
-                    ),
-                  ),
-                ),
-              ),
-          ],
+            ],
+          ),
         );
       },
     );

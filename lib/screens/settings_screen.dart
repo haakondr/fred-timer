@@ -106,6 +106,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const SizedBox(height: 8),
                   SegmentedButton<String?>(
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStateProperty.resolveWith<Color>(
+                        (Set<WidgetState> states) {
+                          if (states.contains(WidgetState.selected)) {
+                            return AppColors.violet;
+                          }
+                          return Colors.transparent;
+                        },
+                      ),
+                      foregroundColor: WidgetStateProperty.resolveWith<Color>(
+                        (Set<WidgetState> states) {
+                          if (states.contains(WidgetState.selected)) {
+                            return Colors.white;
+                          }
+                          return AppColors.navy;
+                        },
+                      ),
+                    ),
                     segments: [
                       ButtonSegment<String?>(
                         value: null,
