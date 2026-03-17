@@ -5,7 +5,7 @@ class AppColors {
   static const Color background = Color(0xFFF5F7FA); // Cool gray
   static const Color surface = Color(0xFFFFFFFF); // White
   static const Color magenta = Color(0xFFFF0080); // Danger/Primary
-  static const Color skyBlue = Color(0xFF57C7FF); // Secondary
+  static const Color violet = Color(0xFF6C71C4); // Solarized violet - Primary
   static const Color iceBlue = Color(0xFF64FFDA); // Success/Accent
   static const Color poisonGreen = Color(0xFF00FF00); // Warning
   static const Color navy = Color(0xFF0a192f); // Text/Dark actions
@@ -22,5 +22,5 @@ class AppColors {
   static const Color danger = magenta;
   static const Color success = iceBlue;
   static const Color warning = poisonGreen;
-  static const Color primary = skyBlue;
+  static const Color primary = violet;
 }

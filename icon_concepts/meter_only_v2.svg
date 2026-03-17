@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="#FDF6E3" rx="180"/>
+
+  <!-- Vertical meter bar with violet accent -->
+  <g transform="translate(512, 512)">
+    <!-- Meter background -->
+    <rect x="-220" y="-480" width="440" height="960" fill="#073642" rx="50"/>
+
+    <!-- Filled blocks from bottom up (15 total blocks) -->
+    <!-- Bottom blocks (green) - quiet zone -->
+    <rect x="-195" y="405" width="390" height="60" fill="#859900" rx="8"/>
+    <rect x="-195" y="330" width="390" height="60" fill="#859900" rx="8"/>
+    <rect x="-195" y="255" width="390" height="60" fill="#859900" rx="8"/>
+    <rect x="-195" y="180" width="390" height="60" fill="#859900" rx="8"/>
+    <rect x="-195" y="105" width="390" height="60" fill="#859900" rx="8"/>
+    <rect x="-195" y="30" width="390" height="60" fill="#859900" rx="8"/>
+    <rect x="-195" y="-45" width="390" height="60" fill="#859900" rx="8"/>
+    <rect x="-195" y="-120" width="390" height="60" fill="#859900" rx="8"/>
+    <rect x="-195" y="-195" width="390" height="60" fill="#859900" rx="8"/>
+
+    <!-- Middle blocks (orange) - warning zone -->
+    <rect x="-195" y="-270" width="390" height="60" fill="#CB4B16" rx="8"/>
+    <rect x="-195" y="-345" width="390" height="60" fill="#CB4B16" rx="8"/>
+    <rect x="-195" y="-420" width="390" height="60" fill="#CB4B16" rx="8"/>
+
+    <!-- Top blocks (empty/dark) - danger zone -->
+    <rect x="-195" y="-465" width="390" height="35" fill="#002B36" rx="8" opacity="0.7"/>
+  </g>
+</svg>

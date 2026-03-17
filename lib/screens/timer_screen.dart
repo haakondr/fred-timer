@@ -400,6 +400,21 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     _backgroundBlinkController.reset();
   }
 
+  void _stopAndReset() {
+    setState(() {
+      _isRunning = false;
+      _remainingSeconds = widget.settings.timerDurationMinutes * 60;
+    });
+    _timer?.cancel();
+    _stopMonitoring();
+    _decibelReadings.clear();
+    _longTermReadings.clear();
+    _firstThresholdExceededTime = null;
+    _lastWarningVibrationTime = null;
+    _backgroundBlinkController.stop();
+    _backgroundBlinkController.reset();
+  }
+
   void _resetTimer() {
     setState(() {
       _remainingSeconds = widget.settings.timerDurationMinutes * 60;
@@ -445,7 +460,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       return const LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [AppColors.iceBlue, AppColors.skyBlue],
+        colors: [AppColors.iceBlue, AppColors.violet],
       );
     }
 
@@ -669,7 +684,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     final isWarning = _currentDecibels >= widget.settings.warningThreshold;
     final isOverThreshold = _currentDecibels >= widget.settings.decibelThreshold;
 
-    Color meterColor = const Color(0xFF268BD2); // Solarized blue
+    Color meterColor = const Color(0xFF6C71C4); // Solarized violet
     Color textColor = const Color(0xFF073642); // Solarized base02
 
     if (isOverThreshold) {
@@ -770,37 +785,24 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   Widget _buildControls() {
     final l10n = AppLocalizations.of(context)!;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        if (!_isRunning)
-          ElevatedButton.icon(
-            onPressed: _startTimer,
-            icon: const Icon(Icons.play_arrow, size: 32),
-            label: Text(l10n.start, style: const TextStyle(fontSize: 20)),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+    return Center(
+      child: !_isRunning
+          ? ElevatedButton.icon(
+              onPressed: _startTimer,
+              icon: const Icon(Icons.play_arrow, size: 32),
+              label: Text(l10n.start, style: const TextStyle(fontSize: 20)),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              ),
+            )
+          : OutlinedButton.icon(
+              onPressed: _stopAndReset,
+              icon: const Icon(Icons.refresh, size: 32),
+              label: Text(l10n.reset, style: const TextStyle(fontSize: 20)),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+              ),
             ),
-          )
-        else
-          ElevatedButton.icon(
-            onPressed: _pauseTimer,
-            icon: const Icon(Icons.pause, size: 32),
-            label: Text(l10n.pause, style: const TextStyle(fontSize: 20)),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-            ),
-          ),
-        const SizedBox(width: 16),
-        OutlinedButton.icon(
-          onPressed: _restart,
-          icon: const Icon(Icons.refresh, size: 32),
-          label: Text(l10n.reset, style: const TextStyle(fontSize: 20)),
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-          ),
-        ),
-      ],
     );
   }
 
@@ -846,7 +848,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
                   label: Text(l10n.restart, style: const TextStyle(fontSize: 20)),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                    backgroundColor: const Color(0xFF268BD2), // Solarized blue
+                    backgroundColor: const Color(0xFF6C71C4), // Solarized violet
                     foregroundColor: Colors.white,
                   ),
                 ),

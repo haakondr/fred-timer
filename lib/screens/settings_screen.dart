@@ -231,7 +231,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 24),
           Card(
-            color: AppColors.skyBlue.withValues(alpha: 0.1),
+            color: AppColors.violet.withValues(alpha: 0.1),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -239,7 +239,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.info_outline, color: AppColors.skyBlue),
+                      const Icon(Icons.info_outline, color: AppColors.violet),
                       const SizedBox(width: 8),
                       Text(
                         l10n.decibelReference,

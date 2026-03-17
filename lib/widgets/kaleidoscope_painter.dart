@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class KaleidoscopePainter extends CustomPainter {
   final Animation<double> animation;
   final List<Color> colors = [
-    const Color(0xFF268BD2), // Solarized blue
+    const Color(0xFF6C71C4), // Solarized violet
     const Color(0xFF2AA198), // Solarized cyan
     const Color(0xFFB58900), // Solarized yellow
     const Color(0xFFCB4B16), // Solarized orange

@@ -8,7 +8,7 @@ class AppTheme {
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.background,
       colorScheme: const ColorScheme.light(
-        primary: AppColors.skyBlue,
+        primary: AppColors.violet,
         secondary: AppColors.iceBlue,
         surface: AppColors.surface,
         error: AppColors.magenta,
@@ -33,7 +33,7 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.skyBlue,
+          backgroundColor: AppColors.violet,
           foregroundColor: Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -51,10 +51,10 @@ class AppTheme {
         ),
       ),
       sliderTheme: const SliderThemeData(
-        activeTrackColor: AppColors.skyBlue,
+        activeTrackColor: AppColors.violet,
         inactiveTrackColor: AppColors.border,
-        thumbColor: AppColors.skyBlue,
-        overlayColor: Color(0x2957C7FF),
+        thumbColor: AppColors.violet,
+        overlayColor: Color(0x296C71C4), // Violet with alpha
       ),
       textTheme: const TextTheme(
         displayLarge: TextStyle(
@@ -95,7 +95,7 @@ class AppTheme {
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.darkBackground,
       colorScheme: const ColorScheme.dark(
-        primary: AppColors.skyBlue,
+        primary: AppColors.violet,
         secondary: AppColors.iceBlue,
         surface: AppColors.darkSurface,
         error: AppColors.magenta,
@@ -120,7 +120,7 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.skyBlue,
+          backgroundColor: AppColors.violet,
           foregroundColor: Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -138,10 +138,10 @@ class AppTheme {
         ),
       ),
       sliderTheme: const SliderThemeData(
-        activeTrackColor: AppColors.skyBlue,
+        activeTrackColor: AppColors.violet,
         inactiveTrackColor: AppColors.darkBorder,
-        thumbColor: AppColors.skyBlue,
-        overlayColor: Color(0x2957C7FF),
+        thumbColor: AppColors.violet,
+        overlayColor: Color(0x296C71C4), // Violet with alpha
       ),
       textTheme: const TextTheme(
         displayLarge: TextStyle(
