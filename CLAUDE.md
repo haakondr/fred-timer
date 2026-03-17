@@ -3,8 +3,10 @@
 ## Project
 **App Name**: Fred (English and Norwegian)
 **Purpose**: Timer app that encourages kids to stay quiet by resetting when noise levels exceed a threshold
-**App Icon**: Digital timer "10:00" above vertical dB meter bar (green/orange/dark blocks)
-  - Source: `icon_concepts/meter_with_timer_v2.svg`
+**App Icon**: Vertical dB meter bar only (green/orange/dark blocks with spacing)
+  - Source: `icon_concepts/meter_only_v1.svg`
+  - Clean single meter design with breathing room above/below
+  - 700px tall meter in 1024x1024 canvas
   - Generated PNGs in: `ios/Runner/Assets.xcassets/AppIcon.appiconset/`
   - Reference: `app_icon.png` (1024x1024)
 
