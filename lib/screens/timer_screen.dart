@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../l10n/app_localizations.dart';
@@ -8,7 +9,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:vibration/vibration.dart';
 import '../models/app_settings.dart';
 import '../theme/app_colors.dart';
-import '../widgets/confetti_painter.dart';
+import '../widgets/confetti_physics.dart';
 
 class _DecibelReading {
   final double value;
@@ -57,7 +58,9 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   late AnimationController _warningController;
   late AnimationController _backgroundBlinkController;
   late AnimationController _resetAnimationController;
-  List<ConfettiParticle> _confetti = [];
+  ConfettiPhysicsWorld? _confettiPhysics;
+  Timer? _confettiSpawnTimer;
+  Timer? _physicsUpdateTimer;
 
   @override
   void initState() {
@@ -65,7 +68,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     _noiseMeter = NoiseMeter();
     _remainingSeconds = widget.settings.timerDurationMinutes * 60;
     _celebrationController = AnimationController(
-      duration: const Duration(seconds: 3),
+      duration: const Duration(minutes: 5),
       vsync: this,
     );
     _warningController = AnimationController(
@@ -152,6 +155,9 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   void dispose() {
     _stopMonitoring();
     _timer?.cancel();
+    _confettiSpawnTimer?.cancel();
+    _physicsUpdateTimer?.cancel();
+    _confettiPhysics?.dispose();
     _celebrationController.dispose();
     _warningController.dispose();
     _backgroundBlinkController.dispose();
@@ -427,22 +433,68 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     _lastWarningVibrationTime = null;
     _backgroundBlinkController.stop();
     _backgroundBlinkController.reset();
+
     setState(() {
       _isRunning = false;
       _isCompleted = true;
-      // Generate confetti particles
-      _confetti = generateConfetti(MediaQuery.of(context).size);
     });
-    _celebrationController.forward();
+
+    // Create physics world
+    final screenSize = MediaQuery.of(context).size;
+    _confettiPhysics = ConfettiPhysicsWorld(screenSize: screenSize);
+
+    // Start the animation controller
+    _celebrationController.repeat();
+
+    // Spawn confetti continuously from the top
+    _confettiSpawnTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      if (!_isCompleted || !mounted || _confettiPhysics == null) {
+        timer.cancel();
+        return;
+      }
+
+      // Spawn 3 new particles from random positions at the top
+      for (int i = 0; i < 3; i++) {
+        final random = Random();
+        final x = random.nextDouble() * screenSize.width;
+        final color = randomConfettiColor();
+        final size = random.nextDouble() * 12 + 6;
+        final shape = randomShape();
+
+        _confettiPhysics!.addConfetti(
+          Offset(x, -20),
+          color,
+          size,
+          shape,
+        );
+      }
+    });
+
+    // Update physics simulation
+    _physicsUpdateTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+      if (!_isCompleted || !mounted || _confettiPhysics == null) {
+        timer.cancel();
+        return;
+      }
+
+      setState(() {
+        _confettiPhysics!.step(0.016); // 60 FPS
+      });
+    });
+
     _triggerHapticFeedback(intensity: 3);
   }
 
   void _restart() {
+    _confettiSpawnTimer?.cancel();
+    _physicsUpdateTimer?.cancel();
+    _confettiPhysics?.dispose();
+    _confettiPhysics = null;
+
     setState(() {
       _remainingSeconds = widget.settings.timerDurationMinutes * 60;
       _isCompleted = false;
       _isRunning = false;
-      _confetti.clear();
     });
     _celebrationController.stop();
     _celebrationController.reset();
@@ -663,14 +715,6 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            if (!_isRunning)
-              Text(
-                l10n.readyToStart,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: const Color(0xFF586E75), // Solarized base01
-                    ),
-              ),
           ],
         );
       },
@@ -785,23 +829,36 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     final l10n = AppLocalizations.of(context)!;
 
     return Center(
-      child: !_isRunning
-          ? ElevatedButton.icon(
-              onPressed: _startTimer,
-              icon: const Icon(Icons.play_arrow, size: 32),
-              label: Text(l10n.start, style: const TextStyle(fontSize: 20)),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              ),
-            )
-          : OutlinedButton.icon(
-              onPressed: _stopAndReset,
-              icon: const Icon(Icons.refresh, size: 32),
-              label: Text(l10n.reset, style: const TextStyle(fontSize: 20)),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-              ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          !_isRunning
+              ? ElevatedButton.icon(
+                  onPressed: _startTimer,
+                  icon: const Icon(Icons.play_arrow, size: 32),
+                  label: Text(l10n.start, style: const TextStyle(fontSize: 20)),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  ),
+                )
+              : OutlinedButton.icon(
+                  onPressed: _stopAndReset,
+                  icon: const Icon(Icons.refresh, size: 32),
+                  label: Text(l10n.reset, style: const TextStyle(fontSize: 20)),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  ),
+                ),
+          // Debug button to skip to end
+          if (kDebugMode) ...[
+            const SizedBox(height: 16),
+            TextButton(
+              onPressed: _completeTimer,
+              child: const Text('DEBUG: Skip to end'),
             ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -814,19 +871,21 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       ),
       child: Stack(
         children: [
-          // Confetti animation
-          AnimatedBuilder(
-            animation: _celebrationController,
-            builder: (context, child) {
-              return CustomPaint(
-                painter: ConfettiPainter(
-                  animation: _celebrationController,
-                  particles: _confetti,
-                ),
-                size: Size.infinite,
-              );
-            },
-          ),
+          // Confetti animation with physics
+          if (_confettiPhysics != null)
+            Positioned.fill(
+              child: AnimatedBuilder(
+                animation: _celebrationController,
+                builder: (context, child) {
+                  return CustomPaint(
+                    painter: ConfettiPhysicsPainter(
+                      physicsWorld: _confettiPhysics!,
+                    ),
+                    child: Container(),
+                  );
+                },
+              ),
+            ),
           // Restart button at bottom
           Align(
             alignment: Alignment.bottomCenter,

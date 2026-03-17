@@ -1,5 +1,5 @@
 name: quiet_timer
-description: "Fred - A timer app that encourages kids to stay quiet by resetting when noise levels exceed a threshold."
+description: "Fred - A timer app that resets when noise levels are too loud"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -49,6 +49,7 @@ dependencies:
 
   # Settings storage
   shared_preferences: ^2.2.2
+  forge2d: ^0.14.2+1
 
 dev_dependencies:
   flutter_test:
