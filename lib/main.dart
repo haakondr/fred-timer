@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/timer_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/privacy_policy_screen.dart';
+import 'screens/accessibility_screen.dart';
 import 'models/app_settings.dart';
 import 'strings.dart';
 import 'theme/app_theme.dart';
@@ -28,6 +29,10 @@ class QuietTimerApp extends StatelessWidget {
           case '/privacy-policy':
             return MaterialPageRoute(
               builder: (context) => const PrivacyPolicyScreen(),
+            );
+          case '/accessibility':
+            return MaterialPageRoute(
+              builder: (context) => const AccessibilityScreen(),
             );
           case '/settings':
             return MaterialPageRoute(
@@ -113,6 +118,7 @@ class _MainScreenState extends State<MainScreen> {
                     IconButton(
                       icon: const Icon(Icons.settings),
                       color: const Color(0xFF073642),
+                      tooltip: 'Settings',
                       onPressed: _navigateToSettings,
                     ),
                   ],

@@ -847,14 +847,20 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
         final blinkProgress = (progress * 10) % 1.0; // 10 blinks over 5 seconds
         final opacity = progress > 0.0 ? (0.3 + (blinkProgress * 0.7)) : 1.0;
 
+        final minutes = _remainingSeconds ~/ 60;
+        final seconds = _remainingSeconds % 60;
         return Column(
           children: [
-            Opacity(
+            Semantics(
+              label: '$minutes minutes and $seconds seconds remaining',
+              liveRegion: true,
+              child: Opacity(
               opacity: opacity,
               child: Transform.scale(
                 scale: scale,
                 child: Text(
                   _formatTime(_remainingSeconds),
+                  semanticsLabel: '$minutes minutes $seconds seconds remaining',
                   style: TextStyle(
                     fontSize: 72,
                     fontWeight: FontWeight.bold,
@@ -873,6 +879,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
                   ),
                 ),
               ),
+            ),
             ),
           ],
         );
@@ -904,16 +911,26 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       textColor = meterColor;
     }
 
+    String noiseLevel = 'quiet';
+    if (isOverThreshold) {
+      noiseLevel = 'too loud, timer will reset';
+    } else if (isWarning) {
+      noiseLevel = 'warning, getting loud';
+    }
+
     // Build alsamixer-style block meter
     const totalBlocks = 25;
     final filledBlocks = (percentage * totalBlocks).round();
 
-    return Center(
+    return Semantics(
+      label: 'Noise level: ${_currentDecibels.round()} decibels, $noiseLevel',
+      value: '${(percentage * 100).round()} percent',
+      child: Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Alsamixer-style vertical meter (centered, 2x wider)
-          Container(
+          ExcludeSemantics(child: Container(
             width: 160,
             height: 200,
             decoration: BoxDecoration(
@@ -967,10 +984,10 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
                 );
               }),
             ),
-          ),
+          )),
           const SizedBox(height: 16),
           // dB reading below meter
-          Text(
+          ExcludeSemantics(child: Text(
             '${_currentDecibels.round()} dB',
             style: TextStyle(
               fontSize: 36,
@@ -978,9 +995,10 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
               fontFamily: 'monospace',
               color: textColor,
             ),
-          ),
+          )),
         ],
       ),
+    ),
     );
   }
 

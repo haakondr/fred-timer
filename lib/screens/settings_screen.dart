@@ -244,6 +244,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: () {
+              Navigator.pushNamed(context, '/accessibility');
+            },
+            icon: const Icon(Icons.accessibility_new, color: AppColors.violet),
+            label: const Text(
+              Strings.accessibility,
+              style: TextStyle(
+                color: AppColors.violet,
+                fontSize: 16,
+              ),
+            ),
+          ),
           const SizedBox(height: 16),
         ].map((child) => Center(
           child: ConstrainedBox(

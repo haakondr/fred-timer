@@ -25,4 +25,5 @@ class Strings {
   static const busyTraffic = 'Busy traffic';
   static const alarmClock = 'Alarm clock';
   static const privacyPolicy = 'Privacy Policy';
+  static const accessibility = 'Accessibility';
 }

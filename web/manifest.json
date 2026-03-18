@@ -5,7 +5,7 @@
     "display": "standalone",
     "background_color": "#FDF6E3",
     "theme_color": "#6C71C4",
-    "description": "Timer app that resets when noise levels reach a threshold. Perfect for keeping kids quiet in the car.",
+    "description": "A timer that rewards silence. Monitors noise levels and resets if it gets too loud.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "categories": ["education", "lifestyle", "utilities"],
