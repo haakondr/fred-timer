@@ -65,6 +65,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: const Color(0xFFFDF6E3),
         appBar: AppBar(
           title: const Text(Strings.settings),
+          foregroundColor: const Color(0xFF073642),
+          titleTextStyle: Theme.of(context).appBarTheme.titleTextStyle?.copyWith(
+            color: const Color(0xFF073642),
+          ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () async {

@@ -390,8 +390,10 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     final screenSize = MediaQuery.of(context).size;
     _confettiPhysics = ConfettiPhysicsWorld(screenSize: screenSize);
 
-    // Start confetti rain immediately
-    _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 1000);
+    // Start confetti rain - scale interval to timer duration so buildup is gradual
+    // Target ~50 particles in the first 25% of the timer
+    final baseIntervalMs = (widget.settings.timerDurationMinutes * 60 * 1000 * 0.25 / 50).round().clamp(500, 5000);
+    _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: baseIntervalMs);
 
     // Start physics update timer
     _physicsUpdateTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
@@ -510,28 +512,36 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     final percentComplete = (elapsedSeconds / totalSeconds);
     final screenSize = MediaQuery.of(context).size;
 
-    // 25% milestone - 2 particles per second
+    // Scale spawn rates to timer duration
+    // Target totals: ~50 by 25%, ~150 by 50%, ~350 by 75%, ~600 by 100%
+    final quarterDuration = totalSeconds * 0.25;
+
+    // 25% milestone
     if (percentComplete >= 0.25 && !_reached25Percent) {
       _reached25Percent = true;
-      _startConfettiSpawn(screenSize, particlesPerSpawn: 2, intervalMs: 1000);
+      final intervalMs = (quarterDuration * 1000 / 100).round().clamp(200, 3000);
+      _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: intervalMs);
     }
 
-    // 50% milestone - 4 particles per second
+    // 50% milestone
     if (percentComplete >= 0.50 && !_reached50Percent) {
       _reached50Percent = true;
-      _startConfettiSpawn(screenSize, particlesPerSpawn: 2, intervalMs: 500);
+      final intervalMs = (quarterDuration * 1000 / 200).round().clamp(150, 2000);
+      _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: intervalMs);
     }
 
-    // 75% milestone - 10 particles per second
+    // 75% milestone
     if (percentComplete >= 0.75 && !_reached75Percent) {
       _reached75Percent = true;
-      _startConfettiSpawn(screenSize, particlesPerSpawn: 3, intervalMs: 300);
+      final intervalMs = (quarterDuration * 1000 / 250).round().clamp(100, 1000);
+      _startConfettiSpawn(screenSize, particlesPerSpawn: 2, intervalMs: intervalMs);
     }
 
-    // 90% milestone - 25 particles per second
+    // 90% milestone
     if (percentComplete >= 0.90 && !_reached90Percent) {
       _reached90Percent = true;
-      _startConfettiSpawn(screenSize, particlesPerSpawn: 5, intervalMs: 200);
+      final intervalMs = (totalSeconds * 0.10 * 1000 / 200).round().clamp(100, 500);
+      _startConfettiSpawn(screenSize, particlesPerSpawn: 3, intervalMs: intervalMs);
     }
   }
 
