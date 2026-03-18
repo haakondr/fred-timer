@@ -231,30 +231,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          TextButton.icon(
-            onPressed: () {
-              Navigator.pushNamed(context, '/privacy-policy');
-            },
-            icon: const Icon(Icons.shield_outlined, color: AppColors.violet),
-            label: const Text(
-              Strings.privacyPolicy,
-              style: TextStyle(
-                color: AppColors.violet,
-                fontSize: 16,
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () {
+                Navigator.pushNamed(context, '/privacy-policy');
+              },
+              icon: const Icon(Icons.shield_outlined, color: AppColors.violet),
+              label: const Text(
+                Strings.privacyPolicy,
+                style: TextStyle(
+                  color: AppColors.violet,
+                  fontSize: 16,
+                ),
               ),
             ),
           ),
           const SizedBox(height: 8),
-          TextButton.icon(
-            onPressed: () {
-              Navigator.pushNamed(context, '/accessibility');
-            },
-            icon: const Icon(Icons.accessibility_new, color: AppColors.violet),
-            label: const Text(
-              Strings.accessibility,
-              style: TextStyle(
-                color: AppColors.violet,
-                fontSize: 16,
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () {
+                Navigator.pushNamed(context, '/accessibility');
+              },
+              icon: const Icon(Icons.accessibility_new, color: AppColors.violet),
+              label: const Text(
+                Strings.accessibility,
+                style: TextStyle(
+                  color: AppColors.violet,
+                  fontSize: 16,
+                ),
               ),
             ),
           ),

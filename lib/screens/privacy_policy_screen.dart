@@ -12,26 +12,15 @@ class PrivacyPolicyScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFFDF6E3),
       appBar: AppBar(
         title: const Text(Strings.privacyPolicy),
+        foregroundColor: const Color(0xFF073642),
+        titleTextStyle: Theme.of(context).appBarTheme.titleTextStyle?.copyWith(
+          color: const Color(0xFF073642),
+        ),
       ),
       body: SelectionArea(
         child: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          Text(
-            'Privacy Policy for Fred Timer',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.navy,
-                ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Last Updated: March 17, 2026',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppColors.navy.withValues(alpha: 0.6),
-                ),
-          ),
-          const SizedBox(height: 16),
           _buildSection(
             context,
             icon: Icons.shield_outlined,

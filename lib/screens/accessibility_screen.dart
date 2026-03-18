@@ -20,14 +20,6 @@ class AccessibilityScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            Text(
-              'Accessibility',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.navy,
-                  ),
-            ),
-            const SizedBox(height: 16),
             _buildSection(
               context,
               icon: Icons.visibility,
