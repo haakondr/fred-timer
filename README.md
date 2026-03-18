@@ -9,6 +9,8 @@ A timer that rewards silence. Fred monitors ambient noise levels — if it gets 
 <p align="center">
   <img src="screenshots/normal.PNG" width="200" alt="Timer running quietly">
   <img src="screenshots/warning_noise.PNG" width="200" alt="Warning - noise approaching threshold">
+  <img src="screenshots/almost-done.PNG" width="200" alt="Almost done - confetti building up">
+  <img src="screenshots/complete.PNG" width="200" alt="Timer complete - confetti celebration">
 </p>
 
 ## How It Works

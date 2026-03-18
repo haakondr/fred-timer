@@ -1,8 +1,10 @@
 # Claude Development Instructions
 
 ## Project
-**App Name**: Fred (English and Norwegian)
-**Purpose**: Timer app that encourages kids to stay quiet by resetting when noise levels exceed a threshold
+**App Name**: Fred
+**Purpose**: Timer app that rewards silence — resets when noise levels exceed a threshold, celebrates with confetti when completed
+**License**: MIT (open source)
+**Repo**: https://github.com/haakondr/fred-timer
 **App Icon**: Terrazzo-style confetti pattern
   - Source: `icon_concepts/terrazzo_confetti.svg`
   - Dense scatter of confetti shapes (circles, rectangles, triangles, stars)
@@ -14,7 +16,7 @@
 ## How The App Works
 
 ### Core Functionality
-Fred is a countdown timer that monitors ambient noise levels using the device microphone. The timer resets when noise exceeds a configurable threshold, encouraging kids to maintain quiet behavior.
+Fred is a countdown timer that monitors ambient noise levels using the device microphone. The timer resets when noise exceeds a configurable threshold, encouraging quiet time.
 
 ### Main Features
 
@@ -23,8 +25,8 @@ Fred is a countdown timer that monitors ambient noise levels using the device mi
 - Displays countdown in MM:SS format (72pt monospace font)
 - Timer color changes based on noise level:
   - Dark blue-gray: Normal/quiet
-  - Orange gradient: Warning zone
-  - Red: Threshold exceeded
+  - Coral-fuchsia gradient: Warning zone
+  - Fuchsia: Threshold exceeded
 - **Reset Animation**: When timer resets due to noise, it scales to 1.5x and blinks for 5 seconds
 
 **2. Noise Monitoring**
@@ -41,13 +43,14 @@ Fred is a countdown timer that monitors ambient noise levels using the device mi
 
 **3. Visual Feedback**
 - **Alsamixer-style vertical meter** (160px wide, 200px tall, 25 blocks):
-  - Green blocks: Quiet zone (bottom 60%)
-  - Orange blocks: Warning zone (60-80%)
-  - Red blocks: Danger zone (top 20%)
+  - Yellow blocks: Quiet zone (bottom 60%)
+  - Coral blocks: Warning zone (60-80%)
+  - Fuchsia blocks: Danger zone (top 20%)
   - Dark/empty blocks: Above current level
 - **Background blinking**:
-  - Orange blink: Warning threshold exceeded
-  - Red blink: Reset threshold exceeded
+  - Coral blink: Warning threshold exceeded
+  - Fuchsia blink: Reset threshold exceeded
+- **Progressive confetti rain**: Physics-based confetti that builds up gradually during the timer, scaled to timer duration
 - **Solarized color palette**: Cream backgrounds, blue/green/orange/red accents
 
 **4. Haptic Feedback**
@@ -56,43 +59,41 @@ Fred is a countdown timer that monitors ambient noise levels using the device mi
 
 **5. Completion Celebration**
 - Light cream background (Solarized base3)
-- **Kaleidoscope color explosion** animation:
-  - 8-way radial symmetry with rotating/pulsing patterns
-  - Layered geometric shapes (triangles, circles, diamonds)
-  - Expanding color wave rings
-  - Sparkle particles bursting outward
-  - All colors from Solarized palette
-  - 4-second looping animation
-- Localized success message: "Timer Complete!" / "Bra jobba!"
-- Restart button to begin again
+- Physics-based confetti explosion that fills the screen
+- Restart button appears when confetti reaches half screen height
 
-**6. Internationalization**
-- Supports English and Norwegian (Bokmål)
-- System language detection with English fallback for unsupported languages
-- User can override language in settings
-- All UI strings localized via ARB files
-
-**7. Settings**
+**6. Settings**
 - **Timer Duration**: 1-60 minutes (slider)
 - **Noise Threshold**: 40-100 dB (slider)
 - **Warning Threshold**: 30 dB to (threshold - 5) dB (slider)
-- **Language**: System default / English / Norwegian
 - **Decibel Reference Guide**: Common sound levels for context
+- **Privacy Policy**: Link at bottom of settings
+
+**7. Privacy Policy**
+- In-app privacy policy screen with selectable text
+- Sections: Data Collection, Microphone Usage, Local Storage, Data Security, Contact, Open Source
+- Contact links to GitHub issues
+- Also linked from microphone permission screen
 
 ### Technical Implementation
 
 **Architecture**
-- Flutter/Dart iOS app
-- Single-screen app with modal settings screen
+- Flutter/Dart iOS + web app
+- Single-screen app with modal settings and privacy screens
 - State management: StatefulWidget with AnimationControllers
 - Settings persistence: SharedPreferences
+- English only (no i18n) — strings in `lib/strings.dart`
+- Responsive layout: settings and privacy screens constrained to 600px max width for desktop web
 
 **Key Packages**
-- `noise_meter ^5.0.1`: Real-time audio level monitoring
-- `permission_handler ^11.0.1`: Microphone permission handling
-- `vibration ^2.0.0`: Haptic feedback
-- `shared_preferences ^2.2.2`: Settings storage
-- `flutter_localizations`: Built-in i18n support
+- `noise_meter`: Real-time audio level monitoring
+- `permission_handler`: Microphone permission handling
+- `vibration`: Haptic feedback
+- `shared_preferences`: Settings storage
+- `forge2d`: Physics engine for confetti
+- `google_fonts`: Nunito typeface
+- `wakelock_plus`: Keeps screen on during timer
+- `url_launcher`: Opening external links (GitHub)
 
 **Noise Processing Pipeline**
 1. Raw dB reading from microphone
@@ -108,19 +109,20 @@ Fred is a countdown timer that monitors ambient noise levels using the device mi
    - If drops below threshold → cancel sustained timer
 
 **Animation Controllers**
-- `_celebrationController`: Kaleidoscope color explosion (4s, looping)
-- `_warningController`: Deprecated (was for warning animations)
+- `_celebrationController`: Confetti celebration (5min, looping)
+- `_warningController`: Warning animations
 - `_backgroundBlinkController`: Background color blink (500ms oscillate)
 - `_resetAnimationController`: Timer scale/blink on reset (5s)
 
-**Key Widgets**
-- `lib/widgets/kaleidoscope_painter.dart`: Custom painter for completion celebration
-  - 8-way radial symmetry pattern
-  - Layered geometric shapes (triangles, circles, diamonds)
-  - Expanding color wave rings
-  - Sparkle particle effects
-  - Uses all Solarized palette colors
-  - Rotating and pulsing animations
+**Key Files**
+- `lib/main.dart`: App entry, main screen with timer and settings navigation
+- `lib/screens/timer_screen.dart`: Timer, noise monitoring, confetti logic
+- `lib/screens/settings_screen.dart`: Settings UI
+- `lib/screens/privacy_policy_screen.dart`: Privacy policy view
+- `lib/widgets/confetti_physics.dart`: Physics-based confetti system (forge2d)
+- `lib/strings.dart`: All UI strings (English)
+- `lib/theme/app_theme.dart`: Light/dark themes with Nunito font
+- `lib/theme/app_colors.dart`: Color constants
 
 ## Critical Build Requirements
 
@@ -129,15 +131,8 @@ Fred is a countdown timer that monitors ambient noise levels using the device mi
 - Run `flutter build ios --no-codesign` or equivalent to verify builds succeed
 - Never leave the codebase in a non-buildable state
 
-### Internationalization (i18n)
-- i18n files must always be generated after ARB file changes
-- Run `flutter gen-l10n` after modifying any `.arb` files in `lib/l10n/`
-- Localization files are generated in `lib/l10n/` (not `flutter_gen`)
-- Import path: `import '../l10n/app_localizations.dart';` (or `'l10n/app_localizations.dart'` from main.dart)
-
 ### Pre-delivery Checklist
 Before marking work complete:
-1. ✅ Run `flutter gen-l10n` if ARB files were modified
-2. ✅ Run `flutter build ios --no-codesign` to verify build passes
-3. ✅ Fix any compilation errors
-4. ✅ Ensure all imports resolve correctly
+1. ✅ Run `flutter build ios --no-codesign` to verify build passes
+2. ✅ Fix any compilation errors
+3. ✅ Ensure all imports resolve correctly

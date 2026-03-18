@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../strings.dart';
 import '../theme/app_colors.dart';
 
@@ -80,7 +81,17 @@ _buildSection(
             context,
             icon: Icons.email_outlined,
             title: 'Contact',
-            description: 'For questions about this privacy policy:\nGitHub: haakondr',
+            description: 'For questions about this privacy policy:',
+            linkText: 'Open an issue on GitHub',
+            linkUrl: 'https://github.com/haakondr/fred-timer/issues/new',
+          ),
+          _buildSection(
+            context,
+            icon: Icons.code,
+            title: 'Open Source',
+            description: 'Fred is open source software, licensed under the MIT license.',
+            linkText: 'github.com/haakondr/fred-timer',
+            linkUrl: 'https://github.com/haakondr/fred-timer/',
           ),
           const SizedBox(height: 16),
           Text(
@@ -108,6 +119,8 @@ _buildSection(
     required String title,
     required String description,
     List<String>? bullets,
+    String? linkText,
+    String? linkUrl,
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
@@ -141,6 +154,19 @@ _buildSection(
                     ],
                   ),
                 )),
+          ],
+          if (linkText != null && linkUrl != null) ...[
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: () => launchUrl(Uri.parse(linkUrl)),
+              child: Text(
+                linkText,
+                style: const TextStyle(
+                  color: AppColors.violet,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
           ],
         ],
       ),
