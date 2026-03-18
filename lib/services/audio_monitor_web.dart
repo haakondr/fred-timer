@@ -24,9 +24,8 @@ class AudioMonitorWeb implements AudioMonitor {
 
   @override
   Future<bool> hasPermission() async {
-    // On web, we can't check permission status without requesting
-    // Return true and let requestPermission handle the actual check
-    return true;
+    // Return false so the intro screen is shown first
+    return false;
   }
 
   @override

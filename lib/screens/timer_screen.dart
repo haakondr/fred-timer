@@ -71,6 +71,11 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   bool _reached90Percent = false;
   bool _showRestartButton = false;
 
+  // Intro screen confetti
+  ConfettiPhysicsWorld? _introConfetti;
+  Timer? _introSpawnTimer;
+  Timer? _introPhysicsTimer;
+
   @override
   void initState() {
     super.initState();
@@ -115,7 +120,54 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       setState(() {
         _hasPermission = hasPermission;
       });
+      if (!hasPermission) {
+        _startIntroConfetti();
+      }
     }
+  }
+
+  void _startIntroConfetti() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final screenSize = MediaQuery.of(context).size;
+      _introConfetti = ConfettiPhysicsWorld(screenSize: screenSize);
+
+      _introSpawnTimer = Timer.periodic(const Duration(milliseconds: 800), (timer) {
+        if (_introConfetti == null || !mounted) {
+          timer.cancel();
+          return;
+        }
+        if (_introConfetti!.confettiBodies.length < 200) {
+          final random = Random();
+          final x = random.nextDouble() * screenSize.width;
+          _introConfetti!.addConfetti(
+            Offset(x, -20),
+            randomConfettiColor(),
+            random.nextDouble() * 10 + 5,
+            randomShape(),
+          );
+        }
+      });
+
+      _introPhysicsTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
+        if (_introConfetti == null || !mounted) {
+          timer.cancel();
+          return;
+        }
+        setState(() {
+          _introConfetti!.step(0.016);
+        });
+      });
+    });
+  }
+
+  void _stopIntroConfetti() {
+    _introSpawnTimer?.cancel();
+    _introPhysicsTimer?.cancel();
+    _introSpawnTimer = null;
+    _introPhysicsTimer = null;
+    _introConfetti?.dispose();
+    _introConfetti = null;
   }
 
   void _addDecibelReading(double value) {
@@ -169,6 +221,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     _confettiSpawnTimer?.cancel();
     _physicsUpdateTimer?.cancel();
     _confettiPhysics?.dispose();
+    _stopIntroConfetti();
     _celebrationController.dispose();
     _warningController.dispose();
     _backgroundBlinkController.dispose();
@@ -194,6 +247,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       debugPrint('Permission granted: $granted');
 
       if (mounted) {
+        if (granted) _stopIntroConfetti();
         setState(() {
           _hasPermission = granted;
         });
@@ -710,53 +764,72 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     if (!_hasPermission) {
       return Container(
         color: const Color(0xFFFDF6E3), // Solarized base3 (cream)
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(32.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Spacer(),
-                Icon(Icons.mic_off, size: 80, color: const Color(0xFF073642).withValues(alpha: 0.4)),
-              const SizedBox(height: 24),
-              Text(
-                Strings.microphoneAccessRequired,
-                style: Theme.of(context).textTheme.headlineMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                Strings.microphoneAccessDescription,
-                style: Theme.of(context).textTheme.bodyLarge,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton.icon(
-                onPressed: _requestPermission,
-                icon: const Icon(Icons.mic),
-                label: Text(Strings.grantPermission),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                ),
-                ),
-                const Spacer(),
-                TextButton.icon(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/privacy-policy');
-                  },
-                  icon: const Icon(Icons.shield_outlined, color: AppColors.violet),
-                  label: Text(
-                    Strings.privacyPolicy,
-                    style: const TextStyle(
-                      color: AppColors.violet,
-                      fontSize: 16,
+        child: Stack(
+          children: [
+            if (_introConfetti != null)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: CustomPaint(
+                    painter: ConfettiPhysicsPainter(
+                      physicsWorld: _introConfetti!,
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-              ],
+              ),
+            SafeArea(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Spacer(),
+                        Icon(Icons.mic_off, size: 80, color: const Color(0xFF073642).withValues(alpha: 0.4)),
+                        const SizedBox(height: 24),
+                        Text(
+                          Strings.microphoneAccessRequired,
+                          style: Theme.of(context).textTheme.headlineMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          Strings.microphoneAccessDescription,
+                          style: Theme.of(context).textTheme.bodyLarge,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 32),
+                        ElevatedButton.icon(
+                          onPressed: _requestPermission,
+                          icon: const Icon(Icons.mic),
+                          label: Text(Strings.grantPermission),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                          ),
+                        ),
+                        const Spacer(),
+                        TextButton.icon(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/privacy-policy');
+                          },
+                          icon: const Icon(Icons.shield_outlined, color: AppColors.violet),
+                          label: Text(
+                            Strings.privacyPolicy,
+                            style: const TextStyle(
+                              color: AppColors.violet,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ),
+          ],
         ),
       );
     }
