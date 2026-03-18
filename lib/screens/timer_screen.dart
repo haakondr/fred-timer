@@ -12,7 +12,6 @@ import '../widgets/confetti_physics.dart';
 import '../services/audio_monitor_factory.dart';
 import '../services/audio_monitor.dart';
 import '../theme/app_colors.dart';
-import 'privacy_policy_screen.dart';
 
 class _DecibelReading {
   final double value;
@@ -743,10 +742,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
                 const Spacer(),
                 TextButton.icon(
                   onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const PrivacyPolicyScreen()),
-                    );
+                    Navigator.pushNamed(context, '/privacy-policy');
                   },
                   icon: const Icon(Icons.shield_outlined, color: AppColors.violet),
                   label: Text(

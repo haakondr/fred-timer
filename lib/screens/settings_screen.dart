@@ -3,7 +3,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/app_settings.dart';
 import '../strings.dart';
 import '../theme/app_colors.dart';
-import 'privacy_policy_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final AppSettings settings;
@@ -234,10 +233,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 24),
           TextButton.icon(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const PrivacyPolicyScreen()),
-              );
+              Navigator.pushNamed(context, '/privacy-policy');
             },
             icon: const Icon(Icons.shield_outlined, color: AppColors.violet),
             label: const Text(
