@@ -4,6 +4,8 @@ A timer that rewards silence. Fred monitors ambient noise levels — if it gets 
 
 *Fred means peace in Norwegian.*
 
+**[Try it in your browser](https://haakondr.github.io/fred-timer/)**
+
 ## Screenshots
 
 <p align="center">
