@@ -3,14 +3,16 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../l10n/app_localizations.dart';
 import 'package:vibration/vibration.dart';
+import '../strings.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 import '../models/app_settings.dart';
 import '../theme/app_colors.dart';
 import '../widgets/confetti_physics.dart';
 import '../services/audio_monitor_factory.dart';
 import '../services/audio_monitor.dart';
+import '../theme/app_colors.dart';
+import 'privacy_policy_screen.dart';
 
 class _DecibelReading {
   final double value;
@@ -64,9 +66,10 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   Timer? _physicsUpdateTimer;
 
   // Milestone tracking for confetti
-  bool _reached50Percent = false;
   bool _reached25Percent = false;
-  bool _reached10Percent = false;
+  bool _reached50Percent = false;
+  bool _reached75Percent = false;
+  bool _reached90Percent = false;
   bool _showRestartButton = false;
 
   @override
@@ -199,16 +202,15 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
 
       // If not granted, show info dialog (web will show browser permission prompt)
       if (!granted && mounted) {
-        final l10n = AppLocalizations.of(context)!;
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text(l10n.microphonePermissionRequired),
-            content: Text(l10n.pleaseEnableMicrophoneAccess),
+            title: Text(Strings.microphonePermissionRequired),
+            content: Text(Strings.pleaseEnableMicrophoneAccess),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: Text(l10n.cancel),
+                child: Text(Strings.cancel),
               ),
             ],
           ),
@@ -373,9 +375,10 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     setState(() {
       _isRunning = true;
       _isCompleted = false;
-      _reached50Percent = false;
       _reached25Percent = false;
-      _reached10Percent = false;
+      _reached50Percent = false;
+      _reached75Percent = false;
+      _reached90Percent = false;
     });
 
     // Keep screen on while timer is running
@@ -387,8 +390,8 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     final screenSize = MediaQuery.of(context).size;
     _confettiPhysics = ConfettiPhysicsWorld(screenSize: screenSize);
 
-    // Start confetti rain immediately (very sparse initially)
-    _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 30000);
+    // Start confetti rain immediately
+    _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 1000);
 
     // Start physics update timer
     _physicsUpdateTimer = Timer.periodic(const Duration(milliseconds: 16), (timer) {
@@ -457,9 +460,10 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     setState(() {
       _isRunning = false;
       _remainingSeconds = widget.settings.timerDurationMinutes * 60;
-      _reached50Percent = false;
       _reached25Percent = false;
-      _reached10Percent = false;
+      _reached50Percent = false;
+      _reached75Percent = false;
+      _reached90Percent = false;
       _showRestartButton = false;
     });
     _timer?.cancel();
@@ -482,18 +486,20 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   void _resetTimer() {
     setState(() {
       _remainingSeconds = widget.settings.timerDurationMinutes * 60;
-      _reached50Percent = false;
       _reached25Percent = false;
-      _reached10Percent = false;
+      _reached50Percent = false;
+      _reached75Percent = false;
+      _reached90Percent = false;
       _showRestartButton = false;
     });
     _resetAnimationController.forward(from: 0.0);
 
-    // Clear confetti on reset
+    // Clear confetti on reset and restart spawning
     _confettiSpawnTimer?.cancel();
     _confettiPhysics?.dispose();
     final screenSize = MediaQuery.of(context).size;
     _confettiPhysics = ConfettiPhysicsWorld(screenSize: screenSize);
+    _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 1000);
   }
 
   void _checkConfettiMilestones() {
@@ -504,30 +510,52 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     final percentComplete = (elapsedSeconds / totalSeconds);
     final screenSize = MediaQuery.of(context).size;
 
-    // 50% milestone - increase to light confetti (1 particle per 5 seconds)
+    // 25% milestone - 2 particles per second
+    if (percentComplete >= 0.25 && !_reached25Percent) {
+      _reached25Percent = true;
+      _startConfettiSpawn(screenSize, particlesPerSpawn: 2, intervalMs: 1000);
+    }
+
+    // 50% milestone - 4 particles per second
     if (percentComplete >= 0.50 && !_reached50Percent) {
       _reached50Percent = true;
-      _confettiSpawnTimer?.cancel();
-      _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 5000);
+      _startConfettiSpawn(screenSize, particlesPerSpawn: 2, intervalMs: 500);
     }
 
-    // 75% complete - increase to moderate confetti (1 particle per 2 seconds)
-    if (percentComplete >= 0.75 && !_reached25Percent) {
-      _reached25Percent = true;
-      _confettiSpawnTimer?.cancel();
-      _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 2000);
+    // 75% milestone - 10 particles per second
+    if (percentComplete >= 0.75 && !_reached75Percent) {
+      _reached75Percent = true;
+      _startConfettiSpawn(screenSize, particlesPerSpawn: 3, intervalMs: 300);
     }
 
-    // 90% complete - increase to steady confetti (1 particle per second)
-    if (percentComplete >= 0.90 && !_reached10Percent) {
-      _reached10Percent = true;
-      _confettiSpawnTimer?.cancel();
-      _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 1000);
+    // 90% milestone - 25 particles per second
+    if (percentComplete >= 0.90 && !_reached90Percent) {
+      _reached90Percent = true;
+      _startConfettiSpawn(screenSize, particlesPerSpawn: 5, intervalMs: 200);
     }
   }
 
   void _startConfettiSpawn(Size screenSize, {required int particlesPerSpawn, required int intervalMs}) {
     _confettiSpawnTimer?.cancel();
+
+    // Spawn initial batch immediately
+    if (_confettiPhysics != null && _confettiPhysics!.confettiBodies.length < 2000) {
+      for (int i = 0; i < particlesPerSpawn; i++) {
+        final random = Random();
+        final x = random.nextDouble() * screenSize.width;
+        final color = randomConfettiColor();
+        final size = random.nextDouble() * 12 + 6;
+        final shape = randomShape();
+
+        _confettiPhysics!.addConfetti(
+          Offset(x, -20),
+          color,
+          size,
+          shape,
+        );
+      }
+    }
+
     _confettiSpawnTimer = Timer.periodic(Duration(milliseconds: intervalMs), (timer) {
       if (_confettiPhysics == null || !mounted) {
         timer.cancel();
@@ -577,9 +605,9 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     // Start the animation controller
     _celebrationController.repeat();
 
-    // Intensify confetti spawning for celebration (2 particles per second)
+    // Big confetti burst for celebration (~50 particles per second)
     _confettiSpawnTimer?.cancel();
-    _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 500);
+    _startConfettiSpawn(screenSize, particlesPerSpawn: 5, intervalMs: 100);
 
     _triggerHapticFeedback(intensity: 3);
   }
@@ -594,9 +622,10 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       _remainingSeconds = widget.settings.timerDurationMinutes * 60;
       _isCompleted = false;
       _isRunning = false;
-      _reached50Percent = false;
       _reached25Percent = false;
-      _reached10Percent = false;
+      _reached50Percent = false;
+      _reached75Percent = false;
+      _reached90Percent = false;
       _showRestartButton = false;
     });
     _celebrationController.stop();
@@ -668,27 +697,27 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
 
     if (!_hasPermission) {
       return Container(
         color: const Color(0xFFFDF6E3), // Solarized base3 (cream)
-        child: Center(
+        child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(32.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                const Spacer(),
                 Icon(Icons.mic_off, size: 80, color: const Color(0xFF073642).withValues(alpha: 0.4)),
               const SizedBox(height: 24),
               Text(
-                l10n.microphoneAccessRequired,
+                Strings.microphoneAccessRequired,
                 style: Theme.of(context).textTheme.headlineMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
               Text(
-                l10n.microphoneAccessDescription,
+                Strings.microphoneAccessDescription,
                 style: Theme.of(context).textTheme.bodyLarge,
                 textAlign: TextAlign.center,
               ),
@@ -696,11 +725,29 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
               ElevatedButton.icon(
                 onPressed: _requestPermission,
                 icon: const Icon(Icons.mic),
-                label: Text(l10n.grantPermission),
+                label: Text(Strings.grantPermission),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 ),
                 ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const PrivacyPolicyScreen()),
+                    );
+                  },
+                  icon: const Icon(Icons.shield_outlined, color: AppColors.violet),
+                  label: Text(
+                    Strings.privacyPolicy,
+                    style: const TextStyle(
+                      color: AppColors.violet,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
               ],
             ),
           ),
@@ -732,26 +779,19 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
                     ),
                   ),
                 ),
-              SafeArea(
-                child: SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: MediaQuery.of(context).size.height -
-                          MediaQuery.of(context).padding.top -
-                          MediaQuery.of(context).padding.bottom,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 40),
-                        _buildTimerDisplay(),
-                        const SizedBox(height: 40),
-                        _buildDecibelMeter(),
-                        const SizedBox(height: 24),
-                        _buildControls(),
-                        const SizedBox(height: 24),
-                      ],
-                    ),
+              Positioned.fill(
+                child: SafeArea(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Spacer(),
+                      _buildTimerDisplay(),
+                      const SizedBox(height: 40),
+                      _buildDecibelMeter(),
+                      const SizedBox(height: 24),
+                      _buildControls(),
+                      const Spacer(),
+                    ],
                   ),
                 ),
               ),
@@ -763,7 +803,6 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   }
 
   Widget _buildTimerDisplay() {
-    final l10n = AppLocalizations.of(context)!;
 
     Color timerColor = const Color(0xFF073642); // Solarized base02 (dark blue-gray)
     if (_currentDecibels >= widget.settings.decibelThreshold) {
@@ -940,7 +979,6 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   }
 
   Widget _buildControls() {
-    final l10n = AppLocalizations.of(context)!;
 
     return Center(
       child: Column(
@@ -950,7 +988,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
               ? ElevatedButton.icon(
                   onPressed: _startTimer,
                   icon: const Icon(Icons.play_arrow, size: 32),
-                  label: Text(l10n.start, style: const TextStyle(fontSize: 20)),
+                  label: Text(Strings.start, style: const TextStyle(fontSize: 20)),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                   ),
@@ -958,7 +996,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
               : OutlinedButton.icon(
                   onPressed: _stopAndReset,
                   icon: const Icon(Icons.refresh, size: 32),
-                  label: Text(l10n.reset, style: const TextStyle(fontSize: 20)),
+                  label: Text(Strings.reset, style: const TextStyle(fontSize: 20)),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                   ),
@@ -977,7 +1015,6 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   }
 
   Widget _buildCompletionScreen() {
-    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       decoration: const BoxDecoration(
@@ -1011,7 +1048,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
                 child: ElevatedButton.icon(
                   onPressed: _restart,
                   icon: const Icon(Icons.refresh, size: 32),
-                  label: Text(l10n.restart, style: const TextStyle(fontSize: 20)),
+                  label: Text(Strings.restart, style: const TextStyle(fontSize: 20)),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                     backgroundColor: const Color(0xFF6C71C4), // Solarized violet

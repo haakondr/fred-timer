@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
 class AppTheme {
@@ -25,12 +26,12 @@ class AppTheme {
           side: const BorderSide(color: AppColors.border, width: 1),
         ),
       ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFFFDF6E3), // Solarized base3 (cream)
+      appBarTheme: AppBarTheme(
+        backgroundColor: const Color(0xFFFDF6E3), // Solarized base3 (cream)
         foregroundColor: AppColors.violet, // Purple title
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: TextStyle(
+        titleTextStyle: GoogleFonts.nunito(
           fontSize: 20,
           fontWeight: FontWeight.bold,
           color: AppColors.violet,
@@ -61,7 +62,7 @@ class AppTheme {
         thumbColor: AppColors.violet,
         overlayColor: Color(0x296C71C4), // Violet with alpha
       ),
-      textTheme: const TextTheme(
+      textTheme: GoogleFonts.nunitoTextTheme(const TextTheme(
         displayLarge: TextStyle(
           fontSize: 96,
           fontWeight: FontWeight.bold,
@@ -90,7 +91,7 @@ class AppTheme {
           fontSize: 14,
           color: AppColors.navy,
         ),
-      ),
+      )),
     );
   }
 
@@ -148,7 +149,7 @@ class AppTheme {
         thumbColor: AppColors.violet,
         overlayColor: Color(0x296C71C4), // Violet with alpha
       ),
-      textTheme: const TextTheme(
+      textTheme: GoogleFonts.nunitoTextTheme(const TextTheme(
         displayLarge: TextStyle(
           fontSize: 96,
           fontWeight: FontWeight.bold,
@@ -177,7 +178,7 @@ class AppTheme {
           fontSize: 14,
           color: AppColors.darkTextSecondary,
         ),
-      ),
+      )),
     );
   }
 }

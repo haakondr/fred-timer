@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import '../l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/app_settings.dart';
+import '../strings.dart';
 import '../theme/app_colors.dart';
+import 'privacy_policy_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   final AppSettings settings;
-  final Function(String?)? onLanguageChanged;
 
   const SettingsScreen({
     super.key,
     required this.settings,
-    this.onLanguageChanged,
   });
 
   @override
@@ -22,7 +21,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late int _timerDuration;
   late double _decibelThreshold;
   late double _warningThreshold;
-  late String? _languageCode;
 
   @override
   void initState() {
@@ -30,7 +28,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _timerDuration = widget.settings.timerDurationMinutes;
     _decibelThreshold = widget.settings.decibelThreshold;
     _warningThreshold = widget.settings.warningThreshold;
-    _languageCode = widget.settings.languageCode;
   }
 
   Future<void> _saveSettingsWithoutPop() async {
@@ -39,7 +36,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
       timerDurationMinutes: _timerDuration,
       decibelThreshold: _decibelThreshold,
       warningThreshold: _warningThreshold,
-      languageCode: _languageCode,
     );
     await newSettings.saveToPreferences(prefs);
   }
@@ -51,28 +47,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
         timerDurationMinutes: _timerDuration,
         decibelThreshold: _decibelThreshold,
         warningThreshold: _warningThreshold,
-        languageCode: _languageCode,
       );
       Navigator.pop(context, newSettings);
     }
   }
 
-  String _getLanguageName(BuildContext context, String? code) {
-    final l10n = AppLocalizations.of(context)!;
-    switch (code) {
-      case 'en':
-        return l10n.english;
-      case 'nb':
-        return l10n.norwegian;
-      default:
-        return l10n.systemDefault;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
@@ -81,9 +62,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFFDF6E3), // Solarized base3 (cream)
+        backgroundColor: const Color(0xFFFDF6E3),
         appBar: AppBar(
-          title: Text(l10n.settings),
+          title: const Text(Strings.settings),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () async {
@@ -101,72 +82,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    l10n.language,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
-                  SegmentedButton<String?>(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.resolveWith<Color>(
-                        (Set<WidgetState> states) {
-                          if (states.contains(WidgetState.selected)) {
-                            return AppColors.violet;
-                          }
-                          return Colors.transparent;
-                        },
-                      ),
-                      foregroundColor: WidgetStateProperty.resolveWith<Color>(
-                        (Set<WidgetState> states) {
-                          if (states.contains(WidgetState.selected)) {
-                            return Colors.white;
-                          }
-                          return AppColors.navy;
-                        },
-                      ),
-                    ),
-                    segments: [
-                      ButtonSegment<String?>(
-                        value: null,
-                        label: Text(l10n.systemDefault),
-                      ),
-                      ButtonSegment<String?>(
-                        value: 'en',
-                        label: Text(l10n.english),
-                      ),
-                      ButtonSegment<String?>(
-                        value: 'nb',
-                        label: Text(l10n.norwegian),
-                      ),
-                    ],
-                    selected: {_languageCode},
-                    onSelectionChanged: (Set<String?> newSelection) async {
-                      setState(() {
-                        _languageCode = newSelection.first;
-                      });
-                      // Immediately apply language change
-                      widget.onLanguageChanged?.call(_languageCode);
-                      // Save settings
-                      await _saveSettingsWithoutPop();
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.timerDuration,
+                    Strings.timerDuration,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    l10n.minutes(_timerDuration),
+                    Strings.minutes(_timerDuration),
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   Slider(
@@ -196,7 +117,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    l10n.noiseThreshold,
+                    Strings.noiseThreshold,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
@@ -224,7 +145,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    l10n.timerResetsWhenExceeded,
+                    Strings.timerResetsWhenExceeded,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
                         ),
@@ -241,7 +162,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    l10n.warningThreshold,
+                    Strings.warningThreshold,
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
@@ -266,7 +187,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    l10n.warningsStartAtLevel,
+                    Strings.warningsStartAtLevel,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
                         ),
@@ -288,7 +209,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       const Icon(Icons.info_outline, color: AppColors.violet),
                       const SizedBox(width: 8),
                       Text(
-                        l10n.decibelReference,
+                        Strings.decibelReference,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               color: AppColors.navy,
                               fontWeight: FontWeight.w600,
@@ -297,16 +218,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Text('30 dB - ${l10n.whisper}', style: Theme.of(context).textTheme.bodyMedium),
-                  Text('40 dB - ${l10n.quietLibrary}', style: Theme.of(context).textTheme.bodyMedium),
-                  Text('60 dB - ${l10n.normalConversation}', style: Theme.of(context).textTheme.bodyMedium),
-                  Text('70 dB - ${l10n.busyTraffic}', style: Theme.of(context).textTheme.bodyMedium),
-                  Text('80 dB - ${l10n.alarmClock}', style: Theme.of(context).textTheme.bodyMedium),
+                  Text('30 dB - ${Strings.whisper}', style: Theme.of(context).textTheme.bodyMedium),
+                  Text('40 dB - ${Strings.quietLibrary}', style: Theme.of(context).textTheme.bodyMedium),
+                  Text('60 dB - ${Strings.normalConversation}', style: Theme.of(context).textTheme.bodyMedium),
+                  Text('70 dB - ${Strings.busyTraffic}', style: Theme.of(context).textTheme.bodyMedium),
+                  Text('80 dB - ${Strings.alarmClock}', style: Theme.of(context).textTheme.bodyMedium),
                 ],
               ),
             ),
           ),
-        ],
+          const SizedBox(height: 24),
+          TextButton.icon(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PrivacyPolicyScreen()),
+              );
+            },
+            icon: const Icon(Icons.shield_outlined, color: AppColors.violet),
+            label: const Text(
+              Strings.privacyPolicy,
+              style: TextStyle(
+                color: AppColors.violet,
+                fontSize: 16,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ].map((child) => Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: child,
+          ),
+        )).toList(),
       ),
       ),
     );
