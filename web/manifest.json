@@ -1,0 +1,36 @@
+{
+    "name": "Fred - Quiet Timer",
+    "short_name": "Fred",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#FDF6E3",
+    "theme_color": "#6C71C4",
+    "description": "Timer app that resets when noise levels reach a threshold. Perfect for keeping kids quiet in the car.",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "categories": ["education", "lifestyle", "utilities"],
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "icons/Icon-maskable-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "icons/Icon-maskable-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

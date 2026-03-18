@@ -73,7 +73,7 @@ app.*.map.json
 **/linux/flutter/generated_plugin_registrant.h
 
 # Web
-/web/
+# /web/
 
 # Coverage
 coverage/
