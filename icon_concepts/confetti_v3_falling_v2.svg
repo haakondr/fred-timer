@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="#FDF6E3" rx="180"/>
+
+  <!-- Confetti falling - variant 2 (different positions and rotations) -->
+
+  <!-- Top row -->
+  <rect x="150" y="170" width="55" height="38" fill="#D33682" rx="4" transform="rotate(25 177 189)"/>
+  <circle cx="450" cy="190" r="32" fill="#859900" transform="rotate(-15 450 190)"/>
+  <path d="M 650 180 L 695 225 L 605 225 Z" fill="#CB4B16" transform="rotate(-25 650 203)"/>
+  <path d="M 850 175 L 865 210 L 910 215 L 880 240 L 890 285 L 850 260 L 810 285 L 820 240 L 790 215 L 835 210 Z" fill="#6C71C4" transform="rotate(15 850 230)"/>
+
+  <!-- Second row -->
+  <circle cx="220" cy="360" r="44" fill="#2AA198" transform="rotate(30 220 360)"/>
+  <path d="M 450 340 L 505 385 L 395 385 Z" fill="#B58900" transform="rotate(-30 450 362)"/>
+  <rect x="630" y="320" width="68" height="48" fill="#DC322F" rx="5" transform="rotate(40 664 344)"/>
+  <circle cx="820" cy="370" r="38" fill="#6C71C4" transform="rotate(-20 820 370)"/>
+
+  <!-- Third row -->
+  <path d="M 180 520 L 195 560 L 240 565 L 205 595 L 215 640 L 180 610 L 145 640 L 155 595 L 120 565 L 165 560 Z" fill="#859900" transform="rotate(-35 180 580)"/>
+  <rect x="400" y="500" width="62" height="44" fill="#D33682" rx="5" transform="rotate(25 431 522)"/>
+  <circle cx="620" cy="540" r="46" fill="#2AA198" transform="rotate(15 620 540)"/>
+  <path d="M 800 530 L 850 575 L 750 575 Z" fill="#CB4B16" transform="rotate(-40 800 552)"/>
+
+  <!-- Fourth row -->
+  <circle cx="250" cy="710" r="48" fill="#B58900" transform="rotate(-25 250 710)"/>
+  <rect x="450" y="690" width="65" height="46" fill="#6C71C4" rx="5" transform="rotate(35 482 713)"/>
+  <path d="M 680 700 L 735 745 L 625 745 Z" fill="#DC322F" transform="rotate(20 680 722)"/>
+  <circle cx="850" cy="720" r="42" fill="#859900" transform="rotate(-15 850 720)"/>
+
+  <!-- Bottom row -->
+  <path d="M 200 860 L 215 900 L 260 905 L 225 935 L 235 980 L 200 950 L 165 980 L 175 935 L 140 905 L 185 900 Z" fill="#2AA198" transform="rotate(30 200 920)"/>
+  <circle cx="420" cy="870" r="54" fill="#CB4B16" transform="rotate(-20 420 870)"/>
+  <rect x="620" y="850" width="78" height="58" fill="#D33682" rx="5" transform="rotate(-30 659 879)"/>
+  <path d="M 830 880 L 880 925 L 780 925 Z" fill="#B58900" transform="rotate(25 830 902)"/>
+</svg>

@@ -1,0 +1,198 @@
+<svg width="1024" height="1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Cream background like completion screen -->
+  <rect width="1024" height="1024" fill="#FDF6E3"/>
+
+  <defs>
+    <!-- Define confetti shapes -->
+    <!-- Rectangle -->
+    <g id="rect-shape">
+      <rect x="-10" y="-6" width="20" height="12" rx="1"/>
+    </g>
+
+    <!-- Circle -->
+    <circle id="circle-shape" cx="0" cy="0" r="10"/>
+
+    <!-- Triangle -->
+    <path id="triangle-shape" d="M 0,-10 L 10,10 L -10,10 Z"/>
+
+    <!-- Star -->
+    <path id="star-shape" d="M 0,-10 L 2.4,-3.1 L 9.5,-3.1 L 3.8,1.5 L 6.2,8.4 L 0,3.8 L -6.2,8.4 L -3.8,1.5 L -9.5,-3.1 L -2.4,-3.1 Z"/>
+  </defs>
+
+  <!-- Confetti colors from the game -->
+  <!-- Yellow: #FDB813 -->
+  <!-- Coral: #FF7F50 -->
+  <!-- Fuchsia: #FF1493 -->
+  <!-- Teal: #2AA198 -->
+  <!-- Violet: #6C71C4 -->
+  <!-- Orange: #FFB347 -->
+  <!-- Hot Pink: #FF69B4 -->
+
+  <!-- Generate scattered confetti pieces - small sizes for dense terrazzo -->
+
+  <!-- Layer 1: Larger pieces (size 2.0) -->
+  <use href="#circle-shape" transform="translate(120,85) rotate(45) scale(2.0)" fill="#FDB813"/>
+  <use href="#star-shape" transform="translate(890,140) rotate(120) scale(2.0)" fill="#FF7F50"/>
+  <use href="#triangle-shape" transform="translate(450,200) rotate(30) scale(2.0)" fill="#FF1493"/>
+  <use href="#rect-shape" transform="translate(750,95) rotate(75) scale(2.0)" fill="#2AA198"/>
+  <use href="#circle-shape" transform="translate(280,180) rotate(90) scale(2.0)" fill="#6C71C4"/>
+  <use href="#star-shape" transform="translate(620,130) rotate(155) scale(2.0)" fill="#FFB347"/>
+  <use href="#triangle-shape" transform="translate(200,250) rotate(200) scale(2.0)" fill="#FF69B4"/>
+  <use href="#rect-shape" transform="translate(920,280) rotate(45) scale(2.0)" fill="#FDB813"/>
+
+  <use href="#circle-shape" transform="translate(150,380) rotate(60) scale(2.0)" fill="#FF7F50"/>
+  <use href="#triangle-shape" transform="translate(560,320) rotate(135) scale(2.0)" fill="#FF1493"/>
+  <use href="#star-shape" transform="translate(820,420) rotate(90) scale(2.0)" fill="#2AA198"/>
+  <use href="#rect-shape" transform="translate(380,450) rotate(15) scale(2.0)" fill="#6C71C4"/>
+  <use href="#circle-shape" transform="translate(680,380) rotate(180) scale(2.0)" fill="#FFB347"/>
+  <use href="#triangle-shape" transform="translate(90,520) rotate(270) scale(2.0)" fill="#FF69B4"/>
+  <use href="#star-shape" transform="translate(940,560) rotate(45) scale(2.0)" fill="#FDB813"/>
+  <use href="#rect-shape" transform="translate(480,590) rotate(100) scale(2.0)" fill="#FF7F50"/>
+
+  <use href="#circle-shape" transform="translate(280,680) rotate(30) scale(2.0)" fill="#FF1493"/>
+  <use href="#star-shape" transform="translate(720,720) rotate(210) scale(2.0)" fill="#2AA198"/>
+  <use href="#triangle-shape" transform="translate(140,780) rotate(150) scale(2.0)" fill="#6C71C4"/>
+  <use href="#rect-shape" transform="translate(540,820) rotate(60) scale(2.0)" fill="#FFB347"/>
+  <use href="#circle-shape" transform="translate(850,880) rotate(330) scale(2.0)" fill="#FF69B4"/>
+  <use href="#star-shape" transform="translate(420,920) rotate(85) scale(2.0)" fill="#FDB813"/>
+  <use href="#triangle-shape" transform="translate(200,950) rotate(255) scale(2.0)" fill="#FF7F50"/>
+  <use href="#rect-shape" transform="translate(780,970) rotate(125) scale(2.0)" fill="#FF1493"/>
+
+  <!-- Layer 2: Medium pieces (size 1.5) -->
+  <use href="#triangle-shape" transform="translate(340,120) rotate(15) scale(1.5)" fill="#2AA198"/>
+  <use href="#rect-shape" transform="translate(580,75) rotate(195) scale(1.5)" fill="#6C71C4"/>
+  <use href="#circle-shape" transform="translate(800,190) rotate(45) scale(1.5)" fill="#FFB347"/>
+  <use href="#star-shape" transform="translate(95,160) rotate(270) scale(1.5)" fill="#FF69B4"/>
+  <use href="#triangle-shape" transform="translate(500,145) rotate(105) scale(1.5)" fill="#FDB813"/>
+  <use href="#rect-shape" transform="translate(710,240) rotate(60) scale(1.5)" fill="#FF7F50"/>
+  <use href="#circle-shape" transform="translate(380,295) rotate(180) scale(1.5)" fill="#FF1493"/>
+  <use href="#star-shape" transform="translate(160,340) rotate(330) scale(1.5)" fill="#2AA198"/>
+
+  <use href="#rect-shape" transform="translate(850,350) rotate(140) scale(1.5)" fill="#6C71C4"/>
+  <use href="#triangle-shape" transform="translate(620,480) rotate(75) scale(1.5)" fill="#FFB347"/>
+  <use href="#circle-shape" transform="translate(260,520) rotate(220) scale(1.5)" fill="#FF69B4"/>
+  <use href="#star-shape" transform="translate(480,385) rotate(160) scale(1.5)" fill="#FDB813"/>
+  <use href="#rect-shape" transform="translate(750,540) rotate(95) scale(1.5)" fill="#FF7F50"/>
+  <use href="#triangle-shape" transform="translate(120,610) rotate(310) scale(1.5)" fill="#FF1493"/>
+  <use href="#circle-shape" transform="translate(430,660) rotate(25) scale(1.5)" fill="#2AA198"/>
+  <use href="#star-shape" transform="translate(890,670) rotate(185) scale(1.5)" fill="#6C71C4"/>
+
+  <use href="#rect-shape" transform="translate(320,760) rotate(245) scale(1.5)" fill="#FFB347"/>
+  <use href="#triangle-shape" transform="translate(620,810) rotate(120) scale(1.5)" fill="#FF69B4"/>
+  <use href="#circle-shape" transform="translate(180,870) rotate(65) scale(1.5)" fill="#FDB813"/>
+  <use href="#star-shape" transform="translate(950,820) rotate(290) scale(1.5)" fill="#FF7F50"/>
+  <use href="#rect-shape" transform="translate(480,940) rotate(155) scale(1.5)" fill="#FF1493"/>
+  <use href="#triangle-shape" transform="translate(810,930) rotate(200) scale(1.5)" fill="#2AA198"/>
+  <use href="#circle-shape" transform="translate(350,1000) rotate(340) scale(1.5)" fill="#6C71C4"/>
+  <use href="#star-shape" transform="translate(680,990) rotate(110) scale(1.5)" fill="#FFB347"/>
+
+  <!-- Layer 3: Small pieces (size 1.2) for density -->
+  <use href="#circle-shape" transform="translate(220,110) rotate(80) scale(1.2)" fill="#FF69B4"/>
+  <use href="#rect-shape" transform="translate(410,165) rotate(250) scale(1.2)" fill="#FDB813"/>
+  <use href="#star-shape" transform="translate(680,140) rotate(35) scale(1.2)" fill="#FF7F50"/>
+  <use href="#triangle-shape" transform="translate(835,225) rotate(165) scale(1.2)" fill="#FF1493"/>
+  <use href="#circle-shape" transform="translate(520,280) rotate(300) scale(1.2)" fill="#2AA198"/>
+  <use href="#rect-shape" transform="translate(190,310) rotate(95) scale(1.2)" fill="#6C71C4"/>
+  <use href="#star-shape" transform="translate(320,220) rotate(215) scale(1.2)" fill="#FFB347"/>
+  <use href="#triangle-shape" transform="translate(900,160) rotate(135) scale(1.2)" fill="#FF69B4"/>
+  <use href="#circle-shape" transform="translate(65,240) rotate(275) scale(1.2)" fill="#FDB813"/>
+  <use href="#rect-shape" transform="translate(785,310) rotate(50) scale(1.2)" fill="#FF7F50"/>
+
+  <use href="#star-shape" transform="translate(420,360) rotate(190) scale(1.2)" fill="#FF1493"/>
+  <use href="#triangle-shape" transform="translate(580,420) rotate(315) scale(1.2)" fill="#2AA198"/>
+  <use href="#circle-shape" transform="translate(220,480) rotate(145) scale(1.2)" fill="#6C71C4"/>
+  <use href="#rect-shape" transform="translate(795,445) rotate(70) scale(1.2)" fill="#FFB347"/>
+  <use href="#star-shape" transform="translate(105,440) rotate(230) scale(1.2)" fill="#FF69B4"/>
+  <use href="#triangle-shape" transform="translate(350,550) rotate(20) scale(1.2)" fill="#FDB813"/>
+  <use href="#circle-shape" transform="translate(920,510) rotate(260) scale(1.2)" fill="#FF7F50"/>
+  <use href="#rect-shape" transform="translate(540,485) rotate(125) scale(1.2)" fill="#FF1493"/>
+  <use href="#star-shape" transform="translate(710,590) rotate(350) scale(1.2)" fill="#2AA198"/>
+  <use href="#triangle-shape" transform="translate(450,630) rotate(175) scale(1.2)" fill="#6C71C4"/>
+
+  <use href="#circle-shape" transform="translate(820,640) rotate(85) scale(1.2)" fill="#FFB347"/>
+  <use href="#rect-shape" transform="translate(180,720) rotate(295) scale(1.2)" fill="#FF69B4"/>
+  <use href="#star-shape" transform="translate(520,780) rotate(55) scale(1.2)" fill="#FDB813"/>
+  <use href="#triangle-shape" transform="translate(385,850) rotate(240) scale(1.2)" fill="#FF7F50"/>
+  <use href="#circle-shape" transform="translate(690,870) rotate(115) scale(1.2)" fill="#FF1493"/>
+  <use href="#rect-shape" transform="translate(910,780) rotate(320) scale(1.2)" fill="#2AA198"/>
+  <use href="#star-shape" transform="translate(260,920) rotate(170) scale(1.2)" fill="#6C71C4"/>
+  <use href="#triangle-shape" transform="translate(560,960) rotate(40) scale(1.2)" fill="#FFB347"/>
+  <use href="#circle-shape" transform="translate(130,980) rotate(280) scale(1.2)" fill="#FF69B4"/>
+  <use href="#rect-shape" transform="translate(780,1010) rotate(195) scale(1.2)" fill="#FDB813"/>
+
+  <!-- Layer 4: Extra small pieces (size 1.0) for fine detail -->
+  <use href="#circle-shape" transform="translate(175,55) rotate(30) scale(1.0)" fill="#FF7F50"/>
+  <use href="#triangle-shape" transform="translate(305,90) rotate(150) scale(1.0)" fill="#FF1493"/>
+  <use href="#star-shape" transform="translate(465,125) rotate(270) scale(1.0)" fill="#2AA198"/>
+  <use href="#rect-shape" transform="translate(640,95) rotate(90) scale(1.0)" fill="#6C71C4"/>
+  <use href="#circle-shape" transform="translate(740,155) rotate(210) scale(1.0)" fill="#FFB347"/>
+  <use href="#triangle-shape" transform="translate(870,115) rotate(45) scale(1.0)" fill="#FF69B4"/>
+  <use href="#star-shape" transform="translate(960,210) rotate(165) scale(1.0)" fill="#FDB813"/>
+  <use href="#rect-shape" transform="translate(135,200) rotate(285) scale(1.0)" fill="#FF7F50"/>
+  <use href="#circle-shape" transform="translate(260,265) rotate(105) scale(1.0)" fill="#FF1493"/>
+  <use href="#triangle-shape" transform="translate(410,240) rotate(225) scale(1.0)" fill="#2AA198"/>
+
+  <use href="#star-shape" transform="translate(545,310) rotate(345) scale(1.0)" fill="#6C71C4"/>
+  <use href="#rect-shape" transform="translate(710,355) rotate(65) scale(1.0)" fill="#FFB347"/>
+  <use href="#circle-shape" transform="translate(855,390) rotate(185) scale(1.0)" fill="#FF69B4"/>
+  <use href="#triangle-shape" transform="translate(990,340) rotate(305) scale(1.0)" fill="#FDB813"/>
+  <use href="#star-shape" transform="translate(55,380) rotate(125) scale(1.0)" fill="#FF7F50"/>
+  <use href="#rect-shape" transform="translate(305,425) rotate(245) scale(1.0)" fill="#FF1493"/>
+  <use href="#circle-shape" transform="translate(520,530) rotate(365) scale(1.0)" fill="#2AA198"/>
+  <use href="#triangle-shape" transform="translate(390,510) rotate(85) scale(1.0)" fill="#6C71C4"/>
+  <use href="#star-shape" transform="translate(650,455) rotate(205) scale(1.0)" fill="#FFB347"/>
+  <use href="#rect-shape" transform="translate(825,580) rotate(325) scale(1.0)" fill="#FF69B4"/>
+
+  <use href="#circle-shape" transform="translate(975,615) rotate(145) scale(1.0)" fill="#FDB813"/>
+  <use href="#triangle-shape" transform="translate(170,590) rotate(265) scale(1.0)" fill="#FF7F50"/>
+  <use href="#star-shape" transform="translate(340,645) rotate(25) scale(1.0)" fill="#FF1493"/>
+  <use href="#rect-shape" transform="translate(495,710) rotate(145) scale(1.0)" fill="#2AA198"/>
+  <use href="#circle-shape" transform="translate(615,680) rotate(265) scale(1.0)" fill="#6C71C4"/>
+  <use href="#triangle-shape" transform="translate(760,755) rotate(25) scale(1.0)" fill="#FFB347"/>
+  <use href="#star-shape" transform="translate(910,710) rotate(145) scale(1.0)" fill="#FF69B4"/>
+  <use href="#rect-shape" transform="translate(65,720) rotate(265) scale(1.0)" fill="#FDB813"/>
+  <use href="#circle-shape" transform="translate(215,805) rotate(385) scale(1.0)" fill="#FF7F50"/>
+  <use href="#triangle-shape" transform="translate(445,880) rotate(105) scale(1.0)" fill="#FF1493"/>
+
+  <use href="#star-shape" transform="translate(595,925) rotate(225) scale(1.0)" fill="#2AA198"/>
+  <use href="#rect-shape" transform="translate(730,960) rotate(345) scale(1.0)" fill="#6C71C4"/>
+  <use href="#circle-shape" transform="translate(875,1000) rotate(65) scale(1.0)" fill="#FFB347"/>
+  <use href="#triangle-shape" transform="translate(1000,920) rotate(185) scale(1.0)" fill="#FF69B4"/>
+  <use href="#star-shape" transform="translate(95,860) rotate(305) scale(1.0)" fill="#FDB813"/>
+  <use href="#rect-shape" transform="translate(395,1010) rotate(125) scale(1.0)" fill="#FF7F50"/>
+  <use href="#circle-shape" transform="translate(620,1015) rotate(245) scale(1.0)" fill="#FF1493"/>
+
+  <!-- Layer 5: More density with tiny pieces (size 0.8) -->
+  <use href="#rect-shape" transform="translate(285,145) rotate(80) scale(0.8)" fill="#2AA198"/>
+  <use href="#circle-shape" transform="translate(520,175) rotate(200) scale(0.8)" fill="#6C71C4"/>
+  <use href="#star-shape" transform="translate(780,120) rotate(320) scale(0.8)" fill="#FFB347"/>
+  <use href="#triangle-shape" transform="translate(940,270) rotate(140) scale(0.8)" fill="#FF69B4"/>
+  <use href="#rect-shape" transform="translate(145,290) rotate(260) scale(0.8)" fill="#FDB813"/>
+  <use href="#circle-shape" transform="translate(360,340) rotate(20) scale(0.8)" fill="#FF7F50"/>
+  <use href="#star-shape" transform="translate(610,265) rotate(140) scale(0.8)" fill="#FF1493"/>
+  <use href="#triangle-shape" transform="translate(885,480) rotate(260) scale(0.8)" fill="#2AA198"/>
+  <use href="#rect-shape" transform="translate(730,390) rotate(380) scale(0.8)" fill="#6C71C4"/>
+  <use href="#circle-shape" transform="translate(290,420) rotate(100) scale(0.8)" fill="#FFB347"/>
+
+  <use href="#star-shape" transform="translate(145,545) rotate(220) scale(0.8)" fill="#FF69B4"/>
+  <use href="#triangle-shape" transform="translate(480,570) rotate(340) scale(0.8)" fill="#FDB813"/>
+  <use href="#rect-shape" transform="translate(655,620) rotate(60) scale(0.8)" fill="#FF7F50"/>
+  <use href="#circle-shape" transform="translate(810,690) rotate(180) scale(0.8)" fill="#FF1493"/>
+  <use href="#star-shape" transform="translate(970,740) rotate(300) scale(0.8)" fill="#2AA198"/>
+  <use href="#triangle-shape" transform="translate(380,725) rotate(120) scale(0.8)" fill="#6C71C4"/>
+  <use href="#rect-shape" transform="translate(530,840) rotate(240) scale(0.8)" fill="#FFB347"/>
+  <use href="#circle-shape" transform="translate(260,980) rotate(360) scale(0.8)" fill="#FF69B4"/>
+  <use href="#star-shape" transform="translate(720,905) rotate(80) scale(0.8)" fill="#FDB813"/>
+  <use href="#triangle-shape" transform="translate(920,955) rotate(200) scale(0.8)" fill="#FF7F50"/>
+
+  <!-- Additional corner fills -->
+  <use href="#circle-shape" transform="translate(50,50) rotate(45) scale(1.3)" fill="#FF1493"/>
+  <use href="#star-shape" transform="translate(974,50) rotate(315) scale(1.3)" fill="#2AA198"/>
+  <use href="#triangle-shape" transform="translate(50,974) rotate(135) scale(1.3)" fill="#6C71C4"/>
+  <use href="#rect-shape" transform="translate(974,974) rotate(225) scale(1.3)" fill="#FFB347"/>
+
+  <use href="#rect-shape" transform="translate(30,480) rotate(90) scale(1.1)" fill="#FF69B4"/>
+  <use href="#circle-shape" transform="translate(994,512) rotate(270) scale(1.1)" fill="#FDB813"/>
+  <use href="#star-shape" transform="translate(512,30) rotate(180) scale(1.1)" fill="#FF7F50"/>
+  <use href="#triangle-shape" transform="translate(512,994) rotate(0) scale(1.1)" fill="#FF1493"/>
+</svg>

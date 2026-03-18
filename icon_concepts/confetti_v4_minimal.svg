@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="#FDF6E3" rx="180"/>
+
+  <!-- Large minimal confetti pieces centered -->
+  <g transform="translate(512, 512)">
+    <!-- Large violet star (center) -->
+    <path d="M 0 -120 L 28 -28 L 125 -20 L 50 40 L 70 135 L 0 75 L -70 135 L -50 40 L -125 -20 L -28 -28 Z" fill="#6C71C4" transform="rotate(20 0 0)"/>
+
+    <!-- Large cyan circle (left) -->
+    <circle cx="-160" cy="80" r="75" fill="#2AA198" transform="rotate(-15 -160 80)"/>
+
+    <!-- Large yellow rectangle (top right) -->
+    <rect x="80" y="-140" width="110" height="75" fill="#B58900" rx="8" transform="rotate(35 135 -102)"/>
+
+    <!-- Large orange triangle (bottom) -->
+    <path d="M 40 180 L 140 260 L -60 260 Z" fill="#CB4B16" transform="rotate(-25 40 220)"/>
+
+    <!-- Large magenta circle (right) -->
+    <circle cx="180" cy="-50" r="70" fill="#D33682" transform="rotate(10 180 -50)"/>
+  </g>
+</svg>

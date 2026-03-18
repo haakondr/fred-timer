@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="#FDF6E3" rx="180"/>
+
+  <!-- Amber to Magenta: Golden → Coral → Magenta -->
+  <g transform="translate(512, 512)">
+    <rect x="-210" y="-350" width="420" height="700" fill="#073642" rx="40"/>
+
+    <!-- Bottom: Golden Amber - caution glow -->
+    <rect x="-185" y="290" width="370" height="55" fill="#F39C12" rx="8"/>
+    <rect x="-185" y="225" width="370" height="55" fill="#F39C12" rx="8"/>
+    <rect x="-185" y="160" width="370" height="55" fill="#F39C12" rx="8"/>
+    <rect x="-185" y="95" width="370" height="55" fill="#F39C12" rx="8"/>
+    <rect x="-185" y="30" width="370" height="55" fill="#F39C12" rx="8"/>
+    <rect x="-185" y="-35" width="370" height="55" fill="#F39C12" rx="8"/>
+    <rect x="-185" y="-100" width="370" height="55" fill="#F39C12" rx="8"/>
+
+    <!-- Middle: Coral - warming sunset -->
+    <rect x="-185" y="-165" width="370" height="55" fill="#FF7F50" rx="8"/>
+    <rect x="-185" y="-230" width="370" height="55" fill="#FF7F50" rx="8"/>
+
+    <!-- Top: Magenta - danger alert -->
+    <rect x="-185" y="-295" width="370" height="55" fill="#D33682" rx="8"/>
+    <rect x="-185" y="-330" width="370" height="25" fill="#D33682" rx="8"/>
+  </g>
+
+  <!-- Color legend -->
+  <text x="512" y="950" font-family="Arial, sans-serif" font-size="28" fill="#073642" text-anchor="middle">Ocean to Sunset</text>
+</svg>

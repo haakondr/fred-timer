@@ -45,10 +45,9 @@ class ConfettiPhysicsWorld {
   }
 
   void _createGround() {
-    // Place ground so confetti lands visibly at the bottom of the screen
-    // Put the top surface 50 pixels from the bottom to ensure visibility
-    final groundThickness = 100.0; // Thick ground to catch everything
-    final groundYPixels = screenSize.height - 50 + (groundThickness / 2);
+    // Place ground at the very bottom of the screen
+    final groundThickness = 100.0;
+    final groundYPixels = screenSize.height + (groundThickness / 2);
 
     final groundDef = box2d.BodyDef()
       ..position = _toPhysics(Offset(screenSize.width / 2, groundYPixels))

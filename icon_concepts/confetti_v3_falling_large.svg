@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="#FDF6E3" rx="180"/>
+
+  <!-- Confetti falling - 50% larger pieces, 50% fewer count -->
+
+  <!-- Top row -->
+  <circle cx="250" cy="200" r="45" fill="#6C71C4" transform="rotate(15 250 200)"/>
+  <rect x="580" y="165" width="75" height="52" fill="#2AA198" rx="6" transform="rotate(-20 617 191)"/>
+
+  <!-- Second row -->
+  <path d="M 200 390 L 222 450 L 307 460 L 245 510 L 265 595 L 200 550 L 135 595 L 155 510 L 93 460 L 178 450 Z" fill="#CB4B16" transform="rotate(25 200 480)"/>
+  <circle cx="680" cy="400" r="63" fill="#D33682" transform="rotate(40 680 400)"/>
+
+  <!-- Third row (middle) -->
+  <circle cx="280" cy="570" r="72" fill="#2AA198" transform="rotate(-25 280 570)"/>
+  <path d="M 640 560 L 730 645 L 550 645 Z" fill="#B58900" transform="rotate(20 640 602)"/>
+
+  <!-- Fourth row -->
+  <rect x="220" y="730" width="90" height="63" fill="#859900" rx="7" transform="rotate(35 265 761)"/>
+  <circle cx="600" cy="750" r="67" fill="#CB4B16" transform="rotate(-30 600 750)"/>
+
+  <!-- Bottom row -->
+  <circle cx="300" cy="870" r="78" fill="#DC322F" transform="rotate(10 300 870)"/>
+  <rect x="580" y="850" width="112" height="82" fill="#6C71C4" rx="7" transform="rotate(-25 636 891)"/>
+  <path d="M 820 890 L 917 965 L 723 965 Z" fill="#2AA198" transform="rotate(15 820 925)"/>
+</svg>

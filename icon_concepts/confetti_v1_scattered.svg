@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="#FDF6E3" rx="180"/>
+
+  <!-- Scattered confetti pieces (various colors and shapes) -->
+
+  <!-- Violet circle -->
+  <circle cx="250" cy="300" r="45" fill="#6C71C4" transform="rotate(25 250 300)"/>
+
+  <!-- Cyan rectangle -->
+  <rect x="600" y="200" width="80" height="50" fill="#2AA198" rx="5" transform="rotate(-15 640 225)"/>
+
+  <!-- Yellow triangle -->
+  <path d="M 400 600 L 480 650 L 320 650 Z" fill="#B58900" transform="rotate(45 400 625)"/>
+
+  <!-- Orange star -->
+  <path d="M 750 500 L 770 560 L 835 565 L 785 605 L 800 670 L 750 635 L 700 670 L 715 605 L 665 565 L 730 560 Z" fill="#CB4B16" transform="rotate(-30 750 600)"/>
+
+  <!-- Red circle -->
+  <circle cx="850" cy="700" r="40" fill="#DC322F" transform="rotate(60 850 700)"/>
+
+  <!-- Green rectangle -->
+  <rect x="150" y="650" width="70" height="45" fill="#859900" rx="5" transform="rotate(20 185 672)"/>
+
+  <!-- Magenta triangle -->
+  <path d="M 500 800 L 560 850 L 440 850 Z" fill="#D33682" transform="rotate(-25 500 825)"/>
+
+  <!-- Violet rectangle (small) -->
+  <rect x="800" y="350" width="60" height="40" fill="#6C71C4" rx="4" transform="rotate(45 830 370)"/>
+
+  <!-- Cyan circle (small) -->
+  <circle cx="300" cy="500" r="35" fill="#2AA198" transform="rotate(-40 300 500)"/>
+
+  <!-- Yellow star (small) -->
+  <path d="M 650 750 L 665 790 L 710 795 L 675 825 L 685 870 L 650 845 L 615 870 L 625 825 L 590 795 L 635 790 Z" fill="#B58900" transform="rotate(15 650 820)"/>
+
+  <!-- Orange circle -->
+  <circle cx="450" cy="350" r="50" fill="#CB4B16" transform="rotate(-20 450 350)"/>
+
+  <!-- Green triangle -->
+  <path d="M 200 450 L 260 500 L 140 500 Z" fill="#859900" transform="rotate(30 200 475)"/>
+</svg>

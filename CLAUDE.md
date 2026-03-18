@@ -3,12 +3,13 @@
 ## Project
 **App Name**: Fred (English and Norwegian)
 **Purpose**: Timer app that encourages kids to stay quiet by resetting when noise levels exceed a threshold
-**App Icon**: Vertical dB meter bar only (green/orange/dark blocks with spacing)
-  - Source: `icon_concepts/meter_only_v1.svg`
-  - Clean single meter design with breathing room above/below
-  - 700px tall meter in 1024x1024 canvas
+**App Icon**: Terrazzo-style confetti pattern
+  - Source: `icon_concepts/terrazzo_confetti.svg`
+  - Dense scatter of confetti shapes (circles, rectangles, triangles, stars)
+  - Uses all game confetti colors (yellow, coral, fuchsia, teal, violet, orange, hot pink)
+  - Cream background (Solarized base3 #FDF6E3)
   - Generated PNGs in: `ios/Runner/Assets.xcassets/AppIcon.appiconset/`
-  - Reference: `app_icon.png` (1024x1024)
+  - Reference: `terrazzo_app_icon.png` (1024x1024)
 
 ## How The App Works
 
@@ -35,8 +36,8 @@ Fred is a countdown timer that monitors ambient noise levels using the device mi
   - Immediate: 2-second sustained loud noise above threshold
   - Elevated: 10-second median exceeds threshold (catches general high volume)
 - Default thresholds:
-  - Warning: 75 dB (visual + haptic feedback)
-  - Reset: 80 dB (either trigger)
+  - Warning: 80 dB (visual + haptic feedback)
+  - Reset: 90 dB (either trigger)
 
 **3. Visual Feedback**
 - **Alsamixer-style vertical meter** (160px wide, 200px tall, 25 blocks):

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="#FDF6E3" rx="180"/>
+
+  <!-- Central confetti cluster -->
+  <g transform="translate(512, 512)">
+    <!-- Violet star (center, large) -->
+    <path d="M 0 -80 L 20 -20 L 85 -15 L 35 25 L 50 90 L 0 50 L -50 90 L -35 25 L -85 -15 L -20 -20 Z" fill="#6C71C4" transform="rotate(15 0 0)"/>
+
+    <!-- Cyan circle (top left) -->
+    <circle cx="-120" cy="-100" r="50" fill="#2AA198" transform="rotate(-25 -120 -100)"/>
+
+    <!-- Yellow rectangle (top right) -->
+    <rect x="70" y="-120" width="85" height="55" fill="#B58900" rx="5" transform="rotate(30 112 -92)"/>
+
+    <!-- Orange triangle (left) -->
+    <path d="M -180 20 L -120 80 L -240 80 Z" fill="#CB4B16" transform="rotate(-15 -180 60)"/>
+
+    <!-- Red rectangle (right) -->
+    <rect x="110" y="-10" width="75" height="50" fill="#DC322F" rx="5" transform="rotate(40 147 15)"/>
+
+    <!-- Green circle (bottom left) -->
+    <circle cx="-90" cy="120" r="45" fill="#859900" transform="rotate(20 -90 120)"/>
+
+    <!-- Magenta triangle (bottom) -->
+    <path d="M 30 130 L 90 180 L -30 180 Z" fill="#D33682" transform="rotate(-30 30 160)"/>
+
+    <!-- Cyan rectangle (small, top) -->
+    <rect x="-40" y="-180" width="60" height="40" fill="#2AA198" rx="4" transform="rotate(50 -10 -160)"/>
+
+    <!-- Yellow circle (small, right) -->
+    <circle cx="180" cy="60" r="38" fill="#B58900" transform="rotate(-35 180 60)"/>
+
+    <!-- Violet triangle (small, bottom right) -->
+    <path d="M 140 140 L 180 180 L 100 180 Z" fill="#6C71C4" transform="rotate(25 140 165)"/>
+  </g>
+</svg>

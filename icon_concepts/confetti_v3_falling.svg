@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1024" height="1024" fill="#FDF6E3" rx="180"/>
+
+  <!-- Confetti falling from top to bottom -->
+
+  <!-- Top row (smaller, just starting to fall) -->
+  <circle cx="200" cy="180" r="30" fill="#6C71C4" transform="rotate(15 200 180)"/>
+  <rect x="420" y="150" width="50" height="35" fill="#2AA198" rx="4" transform="rotate(-20 445 167)"/>
+  <path d="M 700 190 L 740 230 L 660 230 Z" fill="#B58900" transform="rotate(30 700 210)"/>
+  <circle cx="850" cy="200" r="28" fill="#DC322F" transform="rotate(-10 850 200)"/>
+
+  <!-- Second row -->
+  <path d="M 150 360 L 165 395 L 205 400 L 175 425 L 185 465 L 150 440 L 115 465 L 125 425 L 95 400 L 135 395 Z" fill="#CB4B16" transform="rotate(25 150 420)"/>
+  <rect x="350" y="330" width="65" height="45" fill="#859900" rx="5" transform="rotate(-35 382 352)"/>
+  <circle cx="580" cy="370" r="42" fill="#D33682" transform="rotate(40 580 370)"/>
+  <path d="M 780 350 L 830 390 L 730 390 Z" fill="#6C71C4" transform="rotate(-15 780 370)"/>
+
+  <!-- Third row (middle) -->
+  <circle cx="260" cy="530" r="48" fill="#2AA198" transform="rotate(-25 260 530)"/>
+  <path d="M 480 520 L 540 570 L 420 570 Z" fill="#B58900" transform="rotate(20 480 545)"/>
+  <rect x="660" y="510" width="70" height="50" fill="#DC322F" rx="5" transform="rotate(-40 695 535)"/>
+
+  <!-- Fourth row -->
+  <path d="M 180 690 L 195 730 L 240 735 L 205 765 L 215 810 L 180 780 L 145 810 L 155 765 L 120 735 L 165 730 Z" fill="#859900" transform="rotate(35 180 750)"/>
+  <circle cx="400" cy="700" r="45" fill="#CB4B16" transform="rotate(-30 400 700)"/>
+  <rect x="580" y="680" width="60" height="42" fill="#6C71C4" rx="4" transform="rotate(45 610 701)"/>
+  <path d="M 820 710 L 870 750 L 770 750 Z" fill="#2AA198" transform="rotate(-20 820 730)"/>
+
+  <!-- Bottom row (larger, settled at bottom) -->
+  <circle cx="300" cy="860" r="52" fill="#D33682" transform="rotate(10 300 860)"/>
+  <rect x="480" y="840" width="75" height="55" fill="#B58900" rx="5" transform="rotate(-25 517 867)"/>
+  <path d="M 720 870 L 765 910 L 675 910 Z" fill="#DC322F" transform="rotate(15 720 890)"/>
+</svg>
