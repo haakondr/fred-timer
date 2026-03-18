@@ -51,6 +51,68 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Widget _buildStepper({
+    required String label,
+    required String value,
+    required VoidCallback onDecrement,
+    required VoidCallback onIncrement,
+    String? description,
+  }) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton.filled(
+                  onPressed: onDecrement,
+                  icon: const Icon(Icons.remove),
+                  tooltip: 'Decrease $label',
+                  style: IconButton.styleFrom(
+                    backgroundColor: AppColors.violet.withValues(alpha: 0.15),
+                    foregroundColor: AppColors.navy,
+                  ),
+                ),
+                const SizedBox(width: 24),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(width: 24),
+                IconButton.filled(
+                  onPressed: onIncrement,
+                  icon: const Icon(Icons.add),
+                  tooltip: 'Increase $label',
+                  style: IconButton.styleFrom(
+                    backgroundColor: AppColors.violet.withValues(alpha: 0.15),
+                    foregroundColor: AppColors.navy,
+                  ),
+                ),
+              ],
+            ),
+            if (description != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                description,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
+                    ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -78,150 +140,62 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ExcludeSemantics(
-                    child: Text(
-                      Strings.timerDuration,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ExcludeSemantics(
-                    child: Text(
-                      Strings.minutes(_timerDuration),
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                  ),
-                  Semantics(
-                    label: Strings.timerDuration,
-                    child: Slider(
-                      value: _timerDuration.toDouble(),
-                      min: 1,
-                      max: 60,
-                      divisions: 59,
-                      label: '$_timerDuration min',
-                      semanticFormatterCallback: (value) => '${value.round()} minutes',
-                      onChanged: (value) {
-                        setState(() {
-                          _timerDuration = value.round();
-                        });
-                      },
-                      onChangeEnd: (value) async {
-                        await _saveSettingsWithoutPop();
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          _buildStepper(
+            label: Strings.timerDuration,
+            value: Strings.minutes(_timerDuration),
+            onDecrement: () {
+              if (_timerDuration > 1) {
+                setState(() { _timerDuration--; });
+                _saveSettingsWithoutPop();
+              }
+            },
+            onIncrement: () {
+              if (_timerDuration < 60) {
+                setState(() { _timerDuration++; });
+                _saveSettingsWithoutPop();
+              }
+            },
           ),
           const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ExcludeSemantics(
-                    child: Text(
-                      Strings.noiseThreshold,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ExcludeSemantics(
-                    child: Text(
-                      '${_decibelThreshold.round()} dB',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                  ),
-                  Semantics(
-                    label: Strings.noiseThreshold,
-                    child: Slider(
-                      value: _decibelThreshold,
-                      min: 40,
-                      max: 100,
-                      divisions: 60,
-                      label: '${_decibelThreshold.round()} dB',
-                      semanticFormatterCallback: (value) => '${value.round()} decibels',
-                      onChanged: (value) {
-                        setState(() {
-                          _decibelThreshold = value;
-                          if (_warningThreshold > _decibelThreshold - 5) {
-                            _warningThreshold = _decibelThreshold - 5;
-                          }
-                        });
-                      },
-                      onChangeEnd: (value) async {
-                        await _saveSettingsWithoutPop();
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    Strings.timerResetsWhenExceeded,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-                        ),
-                  ),
-                ],
-              ),
-            ),
+          _buildStepper(
+            label: Strings.noiseThreshold,
+            value: '${_decibelThreshold.round()} dB',
+            description: Strings.timerResetsWhenExceeded,
+            onDecrement: () {
+              if (_decibelThreshold > 40) {
+                setState(() {
+                  _decibelThreshold--;
+                  if (_warningThreshold > _decibelThreshold - 5) {
+                    _warningThreshold = _decibelThreshold - 5;
+                  }
+                });
+                _saveSettingsWithoutPop();
+              }
+            },
+            onIncrement: () {
+              if (_decibelThreshold < 100) {
+                setState(() { _decibelThreshold++; });
+                _saveSettingsWithoutPop();
+              }
+            },
           ),
           const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ExcludeSemantics(
-                    child: Text(
-                      Strings.warningThreshold,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ExcludeSemantics(
-                    child: Text(
-                      '${_warningThreshold.round()} dB',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                  ),
-                  Semantics(
-                    label: Strings.warningThreshold,
-                    child: Slider(
-                      value: _warningThreshold,
-                      min: 30,
-                      max: _decibelThreshold - 5,
-                      divisions: (_decibelThreshold - 35).round(),
-                      label: '${_warningThreshold.round()} dB',
-                      semanticFormatterCallback: (value) => '${value.round()} decibels',
-                      onChanged: (value) {
-                        setState(() {
-                          _warningThreshold = value;
-                        });
-                      },
-                      onChangeEnd: (value) async {
-                        await _saveSettingsWithoutPop();
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    Strings.warningsStartAtLevel,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-                        ),
-                  ),
-                ],
-              ),
-            ),
+          _buildStepper(
+            label: Strings.warningThreshold,
+            value: '${_warningThreshold.round()} dB',
+            description: Strings.warningsStartAtLevel,
+            onDecrement: () {
+              if (_warningThreshold > 30) {
+                setState(() { _warningThreshold--; });
+                _saveSettingsWithoutPop();
+              }
+            },
+            onIncrement: () {
+              if (_warningThreshold < _decibelThreshold - 5) {
+                setState(() { _warningThreshold++; });
+                _saveSettingsWithoutPop();
+              }
+            },
           ),
           const SizedBox(height: 24),
           Card(
