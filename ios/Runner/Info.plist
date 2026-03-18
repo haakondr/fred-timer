@@ -47,5 +47,7 @@
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app needs access to the microphone to monitor noise levels.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 </dict>
 </plist>
