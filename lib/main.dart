@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/timer_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/privacy_policy_screen.dart';
 import 'models/app_settings.dart';
 import 'strings.dart';
 import 'theme/app_theme.dart';
@@ -21,7 +22,25 @@ class QuietTimerApp extends StatelessWidget {
       theme: AppTheme.lightTheme(),
       darkTheme: AppTheme.darkTheme(),
       themeMode: ThemeMode.system,
-      home: const MainScreen(),
+      initialRoute: '/',
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/privacy-policy':
+            return MaterialPageRoute(
+              builder: (context) => const PrivacyPolicyScreen(),
+            );
+          case '/settings':
+            return MaterialPageRoute(
+              builder: (context) => SettingsScreen(
+                settings: AppSettings(),
+              ),
+            );
+          default:
+            return MaterialPageRoute(
+              builder: (context) => const MainScreen(),
+            );
+        }
+      },
     );
   }
 }
