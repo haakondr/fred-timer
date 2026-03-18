@@ -104,22 +104,26 @@ class _MainScreenState extends State<MainScreen> {
             child: SafeArea(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Row(
+                child: Stack(
+                  alignment: Alignment.center,
                   children: [
-                    const SizedBox(width: 8),
-                    Text(
-                      Strings.appTitle,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: const Color(0xFF073642),
-                        fontWeight: FontWeight.bold,
+                    Center(
+                      child: Text(
+                        Strings.appTitle,
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: const Color(0xFF073642),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.settings),
-                      color: const Color(0xFF073642),
-                      tooltip: 'Settings',
-                      onPressed: _navigateToSettings,
+                    Positioned(
+                      right: 0,
+                      child: IconButton(
+                        icon: const Icon(Icons.settings),
+                        color: const Color(0xFF073642),
+                        tooltip: 'Settings',
+                        onPressed: _navigateToSettings,
+                      ),
                     ),
                   ],
                 ),

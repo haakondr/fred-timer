@@ -14,16 +14,6 @@ class Strings {
   static const settings = 'Settings';
   static const timerDuration = 'Timer Duration';
   static String minutes(int count) => '$count minutes';
-  static const noiseThreshold = 'Noise Threshold';
-  static const timerResetsWhenExceeded = 'Timer resets when noise exceeds this level';
-  static const warningThreshold = 'Warning Threshold';
-  static const warningsStartAtLevel = 'Visual and haptic warnings start at this level';
-  static const decibelReference = 'Decibel Reference';
-  static const whisper = 'Whisper';
-  static const quietLibrary = 'Quiet library';
-  static const normalConversation = 'Normal conversation';
-  static const busyTraffic = 'Busy traffic';
-  static const alarmClock = 'Alarm clock';
   static const privacyPolicy = 'Privacy Policy';
   static const accessibility = 'Accessibility';
 }

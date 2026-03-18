@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/app_settings.dart';
 import '../strings.dart';
-import '../theme/app_colors.dart';
+
+const _darkColor = Color(0xFF073642);
 
 class SettingsScreen extends StatefulWidget {
   final AppSettings settings;
@@ -18,23 +19,18 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late int _timerDuration;
-  late double _decibelThreshold;
-  late double _warningThreshold;
 
   @override
   void initState() {
     super.initState();
     _timerDuration = widget.settings.timerDurationMinutes;
-    _decibelThreshold = widget.settings.decibelThreshold;
-    _warningThreshold = widget.settings.warningThreshold;
   }
 
   Future<void> _saveSettingsWithoutPop() async {
     final prefs = await SharedPreferences.getInstance();
     final newSettings = AppSettings(
       timerDurationMinutes: _timerDuration,
-      decibelThreshold: _decibelThreshold,
-      warningThreshold: _warningThreshold,
+      noiseThreshold: widget.settings.noiseThreshold,
     );
     await newSettings.saveToPreferences(prefs);
   }
@@ -44,73 +40,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) {
       final newSettings = AppSettings(
         timerDurationMinutes: _timerDuration,
-        decibelThreshold: _decibelThreshold,
-        warningThreshold: _warningThreshold,
+        noiseThreshold: widget.settings.noiseThreshold,
       );
       Navigator.pop(context, newSettings);
     }
-  }
-
-  Widget _buildStepper({
-    required String label,
-    required String value,
-    required VoidCallback onDecrement,
-    required VoidCallback onIncrement,
-    String? description,
-  }) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton.filled(
-                  onPressed: onDecrement,
-                  icon: const Icon(Icons.remove),
-                  tooltip: 'Decrease $label',
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppColors.violet.withValues(alpha: 0.15),
-                    foregroundColor: AppColors.navy,
-                  ),
-                ),
-                const SizedBox(width: 24),
-                Text(
-                  value,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                const SizedBox(width: 24),
-                IconButton.filled(
-                  onPressed: onIncrement,
-                  icon: const Icon(Icons.add),
-                  tooltip: 'Increase $label',
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppColors.violet.withValues(alpha: 0.15),
-                    foregroundColor: AppColors.navy,
-                  ),
-                ),
-              ],
-            ),
-            if (description != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                description,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
-                    ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
   }
 
   @override
@@ -126,9 +59,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: const Color(0xFFFDF6E3),
         appBar: AppBar(
           title: const Text(Strings.settings),
-          foregroundColor: const Color(0xFF073642),
+          foregroundColor: _darkColor,
           titleTextStyle: Theme.of(context).appBarTheme.titleTextStyle?.copyWith(
-            color: const Color(0xFF073642),
+            color: _darkColor,
           ),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -140,90 +73,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          _buildStepper(
-            label: Strings.timerDuration,
-            value: Strings.minutes(_timerDuration),
-            onDecrement: () {
-              if (_timerDuration > 1) {
-                setState(() { _timerDuration--; });
-                _saveSettingsWithoutPop();
-              }
-            },
-            onIncrement: () {
-              if (_timerDuration < 60) {
-                setState(() { _timerDuration++; });
-                _saveSettingsWithoutPop();
-              }
-            },
-          ),
-          const SizedBox(height: 16),
-          _buildStepper(
-            label: Strings.noiseThreshold,
-            value: '${_decibelThreshold.round()} dB',
-            description: Strings.timerResetsWhenExceeded,
-            onDecrement: () {
-              if (_decibelThreshold > 40) {
-                setState(() {
-                  _decibelThreshold--;
-                  if (_warningThreshold > _decibelThreshold - 5) {
-                    _warningThreshold = _decibelThreshold - 5;
-                  }
-                });
-                _saveSettingsWithoutPop();
-              }
-            },
-            onIncrement: () {
-              if (_decibelThreshold < 100) {
-                setState(() { _decibelThreshold++; });
-                _saveSettingsWithoutPop();
-              }
-            },
-          ),
-          const SizedBox(height: 16),
-          _buildStepper(
-            label: Strings.warningThreshold,
-            value: '${_warningThreshold.round()} dB',
-            description: Strings.warningsStartAtLevel,
-            onDecrement: () {
-              if (_warningThreshold > 30) {
-                setState(() { _warningThreshold--; });
-                _saveSettingsWithoutPop();
-              }
-            },
-            onIncrement: () {
-              if (_warningThreshold < _decibelThreshold - 5) {
-                setState(() { _warningThreshold++; });
-                _saveSettingsWithoutPop();
-              }
-            },
-          ),
-          const SizedBox(height: 24),
           Card(
-            color: AppColors.violet.withValues(alpha: 0.1),
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(
+                    Strings.timerDuration,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 12),
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.info_outline, color: AppColors.violet),
-                      const SizedBox(width: 8),
+                      IconButton.filled(
+                        onPressed: _timerDuration > 1 ? () {
+                          setState(() { _timerDuration--; });
+                          _saveSettingsWithoutPop();
+                        } : null,
+                        icon: const Icon(Icons.remove),
+                        tooltip: 'Decrease ${Strings.timerDuration}',
+                        style: IconButton.styleFrom(
+                          backgroundColor: _darkColor.withValues(alpha: 0.1),
+                          foregroundColor: _darkColor,
+                        ),
+                      ),
+                      const SizedBox(width: 24),
                       Text(
-                        Strings.decibelReference,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: AppColors.navy,
-                              fontWeight: FontWeight.w600,
-                            ),
+                        Strings.minutes(_timerDuration),
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(width: 24),
+                      IconButton.filled(
+                        onPressed: _timerDuration < 60 ? () {
+                          setState(() { _timerDuration++; });
+                          _saveSettingsWithoutPop();
+                        } : null,
+                        icon: const Icon(Icons.add),
+                        tooltip: 'Increase ${Strings.timerDuration}',
+                        style: IconButton.styleFrom(
+                          backgroundColor: _darkColor.withValues(alpha: 0.1),
+                          foregroundColor: _darkColor,
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  Text('30 dB - ${Strings.whisper}', style: Theme.of(context).textTheme.bodyMedium),
-                  Text('40 dB - ${Strings.quietLibrary}', style: Theme.of(context).textTheme.bodyMedium),
-                  Text('60 dB - ${Strings.normalConversation}', style: Theme.of(context).textTheme.bodyMedium),
-                  Text('70 dB - ${Strings.busyTraffic}', style: Theme.of(context).textTheme.bodyMedium),
-                  Text('80 dB - ${Strings.alarmClock}', style: Theme.of(context).textTheme.bodyMedium),
                 ],
               ),
             ),
@@ -235,11 +130,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: () {
                 Navigator.pushNamed(context, '/privacy-policy');
               },
-              icon: const Icon(Icons.shield_outlined, color: AppColors.violet),
+              icon: const Icon(Icons.shield_outlined, color: _darkColor),
               label: const Text(
                 Strings.privacyPolicy,
                 style: TextStyle(
-                  color: AppColors.violet,
+                  color: _darkColor,
                   fontSize: 16,
                 ),
               ),
@@ -252,11 +147,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: () {
                 Navigator.pushNamed(context, '/accessibility');
               },
-              icon: const Icon(Icons.accessibility_new, color: AppColors.violet),
+              icon: const Icon(Icons.accessibility_new, color: _darkColor),
               label: const Text(
                 Strings.accessibility,
                 style: TextStyle(
-                  color: AppColors.violet,
+                  color: _darkColor,
                   fontSize: 16,
                 ),
               ),

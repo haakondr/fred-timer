@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:js_interop';
 import 'dart:math';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:web/web.dart' as web;
 import 'audio_monitor.dart';
 
@@ -38,6 +39,7 @@ class AudioMonitorWeb implements AudioMonitor {
       stream.getTracks().toDart.forEach((track) => track.stop());
       return true;
     } catch (e) {
+      debugPrint('Microphone permission failed: $e');
       return false;
     }
   }

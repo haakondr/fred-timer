@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibration/vibration.dart';
 import '../strings.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -11,7 +12,6 @@ import '../theme/app_colors.dart';
 import '../widgets/confetti_physics.dart';
 import '../services/audio_monitor_factory.dart';
 import '../services/audio_monitor.dart';
-import '../theme/app_colors.dart';
 
 class _DecibelReading {
   final double value;
@@ -39,6 +39,9 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   bool _isRunning = false;
   bool _isCompleted = false;
   bool _hasPermission = false;
+  late double _noiseThreshold;
+
+  double get _warningThreshold => _noiseThreshold * 0.85;
 
   // Sliding window for smoothing decibel readings
   final List<_DecibelReading> _decibelReadings = [];
@@ -50,7 +53,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
 
   // Sustained noise tracking for reset
   DateTime? _firstThresholdExceededTime;
-  static const _sustainedNoiseDuration = Duration(seconds: 2);
+  static const _sustainedNoiseDuration = Duration(seconds: 1);
 
   // Vibration tracking
   DateTime? _lastWarningVibrationTime;
@@ -81,6 +84,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     super.initState();
     _audioMonitor = createAudioMonitor();
     _remainingSeconds = widget.settings.timerDurationMinutes * 60;
+    _noiseThreshold = widget.settings.noiseThreshold;
     _celebrationController = AnimationController(
       duration: const Duration(minutes: 5),
       vsync: this,
@@ -102,7 +106,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
         if (status == AnimationStatus.completed) {
           _backgroundBlinkController.reverse();
         } else if (status == AnimationStatus.dismissed) {
-          if (_isRunning && _currentDecibels >= widget.settings.warningThreshold) {
+          if (_isRunning && _currentDecibels >= _warningThreshold) {
             _backgroundBlinkController.forward();
           }
         }
@@ -247,7 +251,10 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       debugPrint('Permission granted: $granted');
 
       if (mounted) {
-        if (granted) _stopIntroConfetti();
+        if (granted) {
+          _stopIntroConfetti();
+          _startMonitoring();
+        }
         setState(() {
           _hasPermission = granted;
         });
@@ -292,20 +299,17 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       // Subscribe to decibel stream
       _audioSubscription = _audioMonitor.decibelStream.listen(
         (db) {
-          // Add to sliding window
+          // Add to long-term window for sustained noise detection
           _addDecibelReading(db);
 
-          // Get smoothed value
-          final smoothedDb = _getSmoothedDecibels();
-
           setState(() {
-            _currentDecibels = smoothedDb;
+            _currentDecibels = db;
           });
 
           if (_isRunning && !_isCompleted) {
             // Check 10-second median for sustained elevated noise
             final longTermMedian = _getLongTermMedianDecibels();
-            if (longTermMedian >= widget.settings.decibelThreshold) {
+            if (longTermMedian >= _noiseThreshold) {
               debugPrint('10-second median ($longTermMedian dB) exceeds threshold - RESET!');
               _resetTimer();
               _triggerHapticFeedback(intensity: 3);
@@ -313,7 +317,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
               return; // Skip further checks after reset
             }
 
-            if (smoothedDb >= widget.settings.decibelThreshold) {
+            if (db >= _noiseThreshold) {
               // Start red blink if not already blinking
               if (!_backgroundBlinkController.isAnimating) {
                 _backgroundBlinkController.forward();
@@ -339,14 +343,14 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
                 _firstThresholdExceededTime = null;
               }
 
-              if (smoothedDb >= widget.settings.warningThreshold) {
+              if (db >= _warningThreshold) {
                 // Start orange blink if not already blinking
                 if (!_backgroundBlinkController.isAnimating) {
                   _backgroundBlinkController.forward();
                 }
 
-                final ratio = (smoothedDb - widget.settings.warningThreshold) /
-                    (widget.settings.decibelThreshold - widget.settings.warningThreshold);
+                final ratio = (db - _warningThreshold) /
+                    (_noiseThreshold - _warningThreshold);
                 _handleWarning(ratio);
 
                 // Pulsing vibration in warning zone
@@ -421,6 +425,15 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     }
   }
 
+  void _adjustThreshold(double delta) async {
+    setState(() {
+      _noiseThreshold = (_noiseThreshold + delta).clamp(40.0, 130.0);
+    });
+    final prefs = await SharedPreferences.getInstance();
+    final newSettings = widget.settings.copyWith(noiseThreshold: _noiseThreshold);
+    await newSettings.saveToPreferences(prefs);
+  }
+
   void _startTimer() {
     // Cancel any existing timer first
     _timer?.cancel();
@@ -437,7 +450,12 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     // Keep screen on while timer is running
     WakelockPlus.enable();
 
-    _startMonitoring();
+    // Monitoring is already running from permission grant
+    // Clear readings for a fresh start
+    _decibelReadings.clear();
+    _longTermReadings.clear();
+    _firstThresholdExceededTime = null;
+    _lastWarningVibrationTime = null;
 
     // Initialize physics world for confetti
     final screenSize = MediaQuery.of(context).size;
@@ -523,7 +541,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     });
     _timer?.cancel();
     WakelockPlus.disable();
-    _stopMonitoring();
+    // Keep monitoring running so user can see noise level
     _decibelReadings.clear();
     _longTermReadings.clear();
     _firstThresholdExceededTime = null;
@@ -725,7 +743,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     final blinkValue = _backgroundBlinkController.value;
     final baseOpacity = 0.3 + (blinkValue * 0.4); // Oscillates 0.3-0.7
 
-    if (_currentDecibels >= widget.settings.decibelThreshold) {
+    if (_currentDecibels >= _noiseThreshold) {
       // Fuchsia blink
       return LinearGradient(
         begin: Alignment.topCenter,
@@ -735,7 +753,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
           Color(0xFFFF1493).withValues(alpha: baseOpacity * 0.8),
         ],
       );
-    } else if (_currentDecibels >= widget.settings.warningThreshold) {
+    } else if (_currentDecibels >= _warningThreshold) {
       // Coral blink
       return LinearGradient(
         begin: Alignment.topCenter,
@@ -866,7 +884,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
                       const Spacer(),
                       _buildTimerDisplay(),
                       const SizedBox(height: 40),
-                      _buildDecibelMeter(),
+                      _buildNoiseMeter(),
                       const SizedBox(height: 24),
                       _buildControls(),
                       const Spacer(),
@@ -884,12 +902,12 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   Widget _buildTimerDisplay() {
 
     Color timerColor = const Color(0xFF073642); // Solarized base02 (dark blue-gray)
-    if (_currentDecibels >= widget.settings.decibelThreshold) {
+    if (_currentDecibels >= _noiseThreshold) {
       timerColor = const Color(0xFFFF1493); // Fuchsia
-    } else if (_currentDecibels >= widget.settings.warningThreshold) {
+    } else if (_currentDecibels >= _warningThreshold) {
       // Gradient from coral to fuchsia based on how close to threshold
-      final ratio = (_currentDecibels - widget.settings.warningThreshold) /
-          (widget.settings.decibelThreshold - widget.settings.warningThreshold);
+      final ratio = (_currentDecibels - _warningThreshold) /
+          (_noiseThreshold - _warningThreshold);
       timerColor = Color.lerp(
         const Color(0xFFFF7F50), // Coral
         const Color(0xFFFF1493), // Fuchsia
@@ -944,7 +962,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
                     fontFamily: 'monospace',
                     letterSpacing: 6,
                     color: timerColor,
-                    shadows: _currentDecibels >= widget.settings.decibelThreshold
+                    shadows: _currentDecibels >= _noiseThreshold
                         ? [
                             Shadow(
                               color: Colors.black.withValues(alpha: 0.3),
@@ -964,29 +982,14 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     );
   }
 
-  Widget _buildDecibelMeter() {
-    // Scale to threshold - bar fills completely when threshold is reached
-    final percentage = (_currentDecibels / widget.settings.decibelThreshold).clamp(0.0, 1.0);
-    final isWarning = _currentDecibels >= widget.settings.warningThreshold;
-    final isOverThreshold = _currentDecibels >= widget.settings.decibelThreshold;
-
-    Color meterColor = const Color(0xFF6C71C4); // Solarized violet
-    Color textColor = const Color(0xFF073642); // Solarized base02
-
-    if (isOverThreshold) {
-      meterColor = const Color(0xFFDC322F); // Solarized red
-      textColor = const Color(0xFFDC322F);
-    } else if (isWarning) {
-      // Gradient from orange to red
-      final ratio = (_currentDecibels - widget.settings.warningThreshold) /
-          (widget.settings.decibelThreshold - widget.settings.warningThreshold);
-      meterColor = Color.lerp(
-        const Color(0xFFCB4B16), // Solarized orange
-        const Color(0xFFDC322F), // Solarized red
-        ratio.clamp(0.0, 1.0),
-      )!;
-      textColor = meterColor;
-    }
+  Widget _buildNoiseMeter() {
+    // Use a wider range for display — meter shows 30..130 range
+    const minDb = 30.0;
+    const maxDb = 130.0;
+    final percentage = ((_currentDecibels - minDb) / (maxDb - minDb)).clamp(0.0, 1.0);
+    final thresholdPosition = ((_noiseThreshold - minDb) / (maxDb - minDb)).clamp(0.0, 1.0);
+    final isWarning = _currentDecibels >= _warningThreshold;
+    final isOverThreshold = _currentDecibels >= _noiseThreshold;
 
     String noiseLevel = 'quiet';
     if (isOverThreshold) {
@@ -995,87 +998,108 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       noiseLevel = 'warning, getting loud';
     }
 
-    // Build alsamixer-style block meter
     const totalBlocks = 25;
     final filledBlocks = (percentage * totalBlocks).round();
+    final thresholdBlock = (thresholdPosition * totalBlocks).round().clamp(0, totalBlocks);
 
     return Semantics(
-      label: 'Noise level: ${_currentDecibels.round()} decibels, $noiseLevel',
+      label: 'Noise level $noiseLevel',
       value: '${(percentage * 100).round()} percent',
       child: Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Alsamixer-style vertical meter (centered, 2x wider)
-          ExcludeSemantics(child: Container(
-            width: 160,
-            height: 200,
-            decoration: BoxDecoration(
-              color: const Color(0xFF073642), // Solarized base02 (dark terminal bg)
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: const Color(0xFF586E75), // Solarized base01
-                width: 2,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Minus button — centered between screen edge and meter
+            Expanded(
+              child: Center(
+                child: IconButton(
+                  onPressed: () => _adjustThreshold(-5),
+                  icon: const Icon(Icons.remove_circle_outline),
+                  tooltip: 'Lower noise threshold',
+                  color: AppColors.navy,
+                  iconSize: 48,
+                ),
               ),
             ),
-            padding: const EdgeInsets.all(4),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: List.generate(totalBlocks, (index) {
-                final blockIndex = totalBlocks - 1 - index;
-                final isFilled = blockIndex < filledBlocks;
-
-                // Determine block color based on position
-                Color blockColor;
-                if (isFilled) {
-                  if (blockIndex >= totalBlocks * 0.8) {
-                    blockColor = const Color(0xFFFF1493); // Fuchsia (top 20%)
-                  } else if (blockIndex >= totalBlocks * 0.6) {
-                    blockColor = const Color(0xFFFF7F50); // Coral (60-80%)
-                  } else {
-                    blockColor = const Color(0xFFFDB813); // Yellow (bottom 60%)
-                  }
-                } else {
-                  blockColor = const Color(0xFF002B36); // Solarized base03 (empty)
-                }
-
-                return Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 1),
-                    decoration: BoxDecoration(
-                      color: blockColor,
-                      borderRadius: BorderRadius.circular(1),
-                    ),
-                    child: Center(
-                      child: Text(
-                        isFilled ? '█' : '░',
-                        style: TextStyle(
-                          fontSize: 8,
-                          color: isFilled ? blockColor : const Color(0xFF073642),
-                          fontFamily: 'monospace',
-                          fontWeight: FontWeight.bold,
+            // Meter with threshold line
+            ExcludeSemantics(
+              child: SizedBox(
+                width: 160,
+                height: 200,
+                child: Stack(
+                  children: [
+                    // Meter background and blocks
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF073642),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: const Color(0xFF586E75),
+                          width: 2,
                         ),
                       ),
+                      padding: const EdgeInsets.all(4),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: List.generate(totalBlocks, (index) {
+                          final blockIndex = totalBlocks - 1 - index;
+                          final isFilled = blockIndex < filledBlocks;
+
+                          Color blockColor;
+                          if (isFilled) {
+                            if (blockIndex >= totalBlocks * 0.8) {
+                              blockColor = const Color(0xFFFF1493); // Fuchsia
+                            } else if (blockIndex >= totalBlocks * 0.6) {
+                              blockColor = const Color(0xFFFF7F50); // Coral
+                            } else {
+                              blockColor = const Color(0xFFFDB813); // Yellow
+                            }
+                          } else {
+                            blockColor = const Color(0xFF002B36);
+                          }
+
+                          return Expanded(
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 1),
+                              decoration: BoxDecoration(
+                                color: blockColor,
+                                borderRadius: BorderRadius.circular(1),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
                     ),
-                  ),
-                );
-              }),
+                    // Threshold line
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 4 + (200 - 8) * thresholdPosition,
+                      child: Container(
+                        height: 3,
+                        color: const Color(0xFFFF1493), // Magenta
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          )),
-          const SizedBox(height: 16),
-          // dB reading below meter
-          ExcludeSemantics(child: Text(
-            '${_currentDecibels.round()} dB',
-            style: TextStyle(
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'monospace',
-              color: textColor,
+            // Plus button — centered between meter and screen edge
+            Expanded(
+              child: Center(
+                child: IconButton(
+                  onPressed: () => _adjustThreshold(5),
+                  icon: const Icon(Icons.add_circle_outline),
+                  tooltip: 'Raise noise threshold',
+                  color: AppColors.navy,
+                  iconSize: 48,
+                ),
+              ),
             ),
-          )),
-        ],
+          ],
+        ),
       ),
-    ),
     );
   }
 
