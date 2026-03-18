@@ -84,29 +84,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    Strings.timerDuration,
-                    style: Theme.of(context).textTheme.titleLarge,
+                  ExcludeSemantics(
+                    child: Text(
+                      Strings.timerDuration,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    Strings.minutes(_timerDuration),
-                    style: Theme.of(context).textTheme.headlineSmall,
+                  ExcludeSemantics(
+                    child: Text(
+                      Strings.minutes(_timerDuration),
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
                   ),
-                  Slider(
-                    value: _timerDuration.toDouble(),
-                    min: 1,
-                    max: 60,
-                    divisions: 59,
-                    label: '$_timerDuration min',
-                    onChanged: (value) {
-                      setState(() {
-                        _timerDuration = value.round();
-                      });
-                    },
-                    onChangeEnd: (value) async {
-                      await _saveSettingsWithoutPop();
-                    },
+                  Semantics(
+                    label: Strings.timerDuration,
+                    child: Slider(
+                      value: _timerDuration.toDouble(),
+                      min: 1,
+                      max: 60,
+                      divisions: 59,
+                      label: '$_timerDuration min',
+                      semanticFormatterCallback: (value) => '${value.round()} minutes',
+                      onChanged: (value) {
+                        setState(() {
+                          _timerDuration = value.round();
+                        });
+                      },
+                      onChangeEnd: (value) async {
+                        await _saveSettingsWithoutPop();
+                      },
+                    ),
                   ),
                 ],
               ),
@@ -119,32 +127,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    Strings.noiseThreshold,
-                    style: Theme.of(context).textTheme.titleLarge,
+                  ExcludeSemantics(
+                    child: Text(
+                      Strings.noiseThreshold,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    '${_decibelThreshold.round()} dB',
-                    style: Theme.of(context).textTheme.headlineSmall,
+                  ExcludeSemantics(
+                    child: Text(
+                      '${_decibelThreshold.round()} dB',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
                   ),
-                  Slider(
-                    value: _decibelThreshold,
-                    min: 40,
-                    max: 100,
-                    divisions: 60,
-                    label: '${_decibelThreshold.round()} dB',
-                    onChanged: (value) {
-                      setState(() {
-                        _decibelThreshold = value;
-                        if (_warningThreshold > _decibelThreshold - 5) {
-                          _warningThreshold = _decibelThreshold - 5;
-                        }
-                      });
-                    },
-                    onChangeEnd: (value) async {
-                      await _saveSettingsWithoutPop();
-                    },
+                  Semantics(
+                    label: Strings.noiseThreshold,
+                    child: Slider(
+                      value: _decibelThreshold,
+                      min: 40,
+                      max: 100,
+                      divisions: 60,
+                      label: '${_decibelThreshold.round()} dB',
+                      semanticFormatterCallback: (value) => '${value.round()} decibels',
+                      onChanged: (value) {
+                        setState(() {
+                          _decibelThreshold = value;
+                          if (_warningThreshold > _decibelThreshold - 5) {
+                            _warningThreshold = _decibelThreshold - 5;
+                          }
+                        });
+                      },
+                      onChangeEnd: (value) async {
+                        await _saveSettingsWithoutPop();
+                      },
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -164,29 +180,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    Strings.warningThreshold,
-                    style: Theme.of(context).textTheme.titleLarge,
+                  ExcludeSemantics(
+                    child: Text(
+                      Strings.warningThreshold,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    '${_warningThreshold.round()} dB',
-                    style: Theme.of(context).textTheme.headlineSmall,
+                  ExcludeSemantics(
+                    child: Text(
+                      '${_warningThreshold.round()} dB',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
                   ),
-                  Slider(
-                    value: _warningThreshold,
-                    min: 30,
-                    max: _decibelThreshold - 5,
-                    divisions: (_decibelThreshold - 35).round(),
-                    label: '${_warningThreshold.round()} dB',
-                    onChanged: (value) {
-                      setState(() {
-                        _warningThreshold = value;
-                      });
-                    },
-                    onChangeEnd: (value) async {
-                      await _saveSettingsWithoutPop();
-                    },
+                  Semantics(
+                    label: Strings.warningThreshold,
+                    child: Slider(
+                      value: _warningThreshold,
+                      min: 30,
+                      max: _decibelThreshold - 5,
+                      divisions: (_decibelThreshold - 35).round(),
+                      label: '${_warningThreshold.round()} dB',
+                      semanticFormatterCallback: (value) => '${value.round()} decibels',
+                      onChanged: (value) {
+                        setState(() {
+                          _warningThreshold = value;
+                        });
+                      },
+                      onChangeEnd: (value) async {
+                        await _saveSettingsWithoutPop();
+                      },
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(

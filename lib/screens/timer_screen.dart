@@ -849,18 +849,22 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
 
         final minutes = _remainingSeconds ~/ 60;
         final seconds = _remainingSeconds % 60;
+        final announceNow = seconds == 0 || _remainingSeconds == widget.settings.timerDurationMinutes * 60;
+        final semanticText = seconds == 0
+            ? '$minutes minutes remaining'
+            : '$minutes minutes and $seconds seconds remaining';
         return Column(
           children: [
             Semantics(
-              label: '$minutes minutes and $seconds seconds remaining',
-              liveRegion: true,
+              label: semanticText,
+              liveRegion: announceNow,
               child: Opacity(
               opacity: opacity,
               child: Transform.scale(
                 scale: scale,
                 child: Text(
                   _formatTime(_remainingSeconds),
-                  semanticsLabel: '$minutes minutes $seconds seconds remaining',
+                  semanticsLabel: semanticText,
                   style: TextStyle(
                     fontSize: 72,
                     fontWeight: FontWeight.bold,
