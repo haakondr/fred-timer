@@ -1013,13 +1013,15 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
             // Minus button — centered between screen edge and meter
             Expanded(
               child: Center(
-                child: IconButton(
-                  onPressed: () => _adjustThreshold(-5),
-                  icon: const Icon(Icons.remove_circle_outline),
-                  tooltip: 'Lower noise threshold',
-                  color: AppColors.navy,
-                  iconSize: 48,
-                ),
+                child: widget.settings.hideThresholdButtons
+                    ? const SizedBox.shrink()
+                    : IconButton(
+                        onPressed: () => _adjustThreshold(-5),
+                        icon: const Icon(Icons.remove_circle_outline),
+                        tooltip: 'Lower noise threshold',
+                        color: AppColors.navy,
+                        iconSize: 48,
+                      ),
               ),
             ),
             // Meter with threshold line
@@ -1088,13 +1090,15 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
             // Plus button — centered between meter and screen edge
             Expanded(
               child: Center(
-                child: IconButton(
-                  onPressed: () => _adjustThreshold(5),
-                  icon: const Icon(Icons.add_circle_outline),
-                  tooltip: 'Raise noise threshold',
-                  color: AppColors.navy,
-                  iconSize: 48,
-                ),
+                child: widget.settings.hideThresholdButtons
+                    ? const SizedBox.shrink()
+                    : IconButton(
+                        onPressed: () => _adjustThreshold(5),
+                        icon: const Icon(Icons.add_circle_outline),
+                        tooltip: 'Raise noise threshold',
+                        color: AppColors.navy,
+                        iconSize: 48,
+                      ),
               ),
             ),
           ],

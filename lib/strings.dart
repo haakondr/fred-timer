@@ -16,4 +16,5 @@ class Strings {
   static String minutes(int count) => '$count minutes';
   static const privacyPolicy = 'Privacy Policy';
   static const accessibility = 'Accessibility';
+  static const hideThresholdButtons = 'Hide noise threshold buttons';
 }

@@ -19,11 +19,13 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   late int _timerDuration;
+  late bool _hideThresholdButtons;
 
   @override
   void initState() {
     super.initState();
     _timerDuration = widget.settings.timerDurationMinutes;
+    _hideThresholdButtons = widget.settings.hideThresholdButtons;
   }
 
   Future<void> _saveSettingsWithoutPop() async {
@@ -31,6 +33,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final newSettings = AppSettings(
       timerDurationMinutes: _timerDuration,
       noiseThreshold: widget.settings.noiseThreshold,
+      hideThresholdButtons: _hideThresholdButtons,
     );
     await newSettings.saveToPreferences(prefs);
   }
@@ -41,6 +44,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final newSettings = AppSettings(
         timerDurationMinutes: _timerDuration,
         noiseThreshold: widget.settings.noiseThreshold,
+        hideThresholdButtons: _hideThresholdButtons,
       );
       Navigator.pop(context, newSettings);
     }
@@ -121,6 +125,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ],
               ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            child: SwitchListTile(
+              title: Text(
+                Strings.hideThresholdButtons,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              value: _hideThresholdButtons,
+              activeColor: _darkColor,
+              onChanged: (value) {
+                setState(() { _hideThresholdButtons = value; });
+                _saveSettingsWithoutPop();
+              },
             ),
           ),
           const SizedBox(height: 24),
