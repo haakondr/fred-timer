@@ -65,6 +65,9 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   DateTime? _lastDecibelReadingTime;
   static const _staleAudioTimeout = Duration(seconds: 5);
 
+  // Audio error state — shown to user
+  String? _audioError;
+
   late AnimationController _celebrationController;
   late AnimationController _warningController;
   late AnimationController _backgroundBlinkController;
@@ -308,6 +311,9 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
         category: 'audio',
       ));
 
+      // Set baseline so watchdog can detect "never received any readings"
+      _lastDecibelReadingTime = DateTime.now();
+
       // Start stale audio watchdog
       _startStaleAudioWatchdog();
 
@@ -392,12 +398,13 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
         onError: (error, stackTrace) {
           Sentry.captureException(error, stackTrace: stackTrace);
           debugPrint('Audio monitor error: $error');
+          _showAudioError('Microphone stopped working. Please restart the app. If the problem persists, try reinstalling.');
         },
       );
     } catch (e, stackTrace) {
       Sentry.captureException(e, stackTrace: stackTrace);
       debugPrint('Error starting audio monitor: $e');
-      rethrow;
+      _showAudioError('Failed to start microphone. Please restart the app. If the problem persists, try reinstalling.');
     }
   }
 
@@ -421,11 +428,25 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
         );
         Sentry.captureException(error, stackTrace: StackTrace.current);
         debugPrint('Stale audio detected: $error');
+        _showAudioError('Microphone is not responding. Please restart the app. If the problem persists, try reinstalling.');
         // Cancel watchdog to avoid spamming
         _staleAudioWatchdog?.cancel();
         _staleAudioWatchdog = null;
       }
     });
+  }
+
+  void _showAudioError(String message) {
+    if (!mounted) return;
+    setState(() {
+      _audioError = message;
+    });
+    // Stop the timer if running
+    if (_isRunning) {
+      _timer?.cancel();
+      _timer = null;
+      _isRunning = false;
+    }
   }
 
   void _handleWarning(double intensity) {
@@ -819,6 +840,42 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
+
+    if (_audioError != null) {
+      return Container(
+        color: const Color(0xFFFDF6E3),
+        child: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: Padding(
+                padding: const EdgeInsets.all(32.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error_outline, size: 80, color: Color(0xFFDC322F)),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Microphone Error',
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        color: const Color(0xFFDC322F),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _audioError!,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
 
     if (!_hasPermission) {
       return Container(

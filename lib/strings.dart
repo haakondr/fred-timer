@@ -17,4 +17,5 @@ class Strings {
   static const privacyPolicy = 'Privacy Policy';
   static const accessibility = 'Accessibility';
   static const hideThresholdButtons = 'Hide noise threshold buttons';
+  static const microphoneError = 'Microphone Error';
 }
