@@ -15,6 +15,15 @@ if [ ! -f "pubspec.yaml" ]; then
     exit 1
 fi
 
+# Load .env file for secrets (e.g. SENTRY_DSN)
+if [ -f ".env" ]; then
+    set -a
+    source .env
+    set +a
+else
+    echo -e "${YELLOW}Warning: .env file not found — SENTRY_DSN will not be set${NC}"
+fi
+
 # Bump build number in pubspec.yaml
 CURRENT_VERSION=$(grep '^version:' pubspec.yaml | sed 's/version: //')
 VERSION_NAME=$(echo "$CURRENT_VERSION" | cut -d'+' -f1)
@@ -33,7 +42,7 @@ echo -e "${GREEN}Version bumped and committed${NC}\n"
 
 # Build the IPA
 echo -e "${YELLOW}Building iOS release IPA...${NC}"
-flutter build ipa --release
+flutter build ipa --release --dart-define=SENTRY_DSN="${SENTRY_DSN}"
 
 # Check if build succeeded
 IPA_PATH="build/ios/ipa/quiet_timer.ipa"

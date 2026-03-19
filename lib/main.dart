@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'screens/timer_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/privacy_policy_screen.dart';
@@ -8,9 +9,24 @@ import 'models/app_settings.dart';
 import 'strings.dart';
 import 'theme/app_theme.dart';
 
-void main() async {
+const _sentryDsn = String.fromEnvironment('SENTRY_DSN');
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const QuietTimerApp());
+
+  if (_sentryDsn.isNotEmpty) {
+    await SentryFlutter.init(
+      (options) {
+        options.dsn = _sentryDsn;
+        options.sendDefaultPii = false;
+        options.attachStacktrace = true;
+        options.maxBreadcrumbs = 50;
+      },
+      appRunner: () => runApp(const QuietTimerApp()),
+    );
+  } else {
+    runApp(const QuietTimerApp());
+  }
 }
 
 class QuietTimerApp extends StatelessWidget {

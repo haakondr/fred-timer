@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vibration/vibration.dart';
 import '../strings.dart';
@@ -58,6 +59,11 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   // Vibration tracking
   DateTime? _lastWarningVibrationTime;
   static const _warningVibrationInterval = Duration(milliseconds: 1000);
+
+  // Stale audio watchdog — detect mic going silent
+  Timer? _staleAudioWatchdog;
+  DateTime? _lastDecibelReadingTime;
+  static const _staleAudioTimeout = Duration(seconds: 5);
 
   late AnimationController _celebrationController;
   late AnimationController _warningController;
@@ -276,7 +282,8 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
           ),
         );
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      Sentry.captureException(e, stackTrace: stackTrace);
       debugPrint('Permission request failed: $e');
       if (mounted) {
         setState(() {
@@ -296,9 +303,19 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       // Start audio monitoring
       _audioMonitor.startMonitoring();
 
+      Sentry.addBreadcrumb(Breadcrumb(
+        message: 'Audio monitoring started',
+        category: 'audio',
+      ));
+
+      // Start stale audio watchdog
+      _startStaleAudioWatchdog();
+
       // Subscribe to decibel stream
       _audioSubscription = _audioMonitor.decibelStream.listen(
         (db) {
+          _lastDecibelReadingTime = DateTime.now();
+
           // Add to long-term window for sustained noise detection
           _addDecibelReading(db);
 
@@ -372,19 +389,43 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
             }
           }
         },
-        onError: (error) {
+        onError: (error, stackTrace) {
+          Sentry.captureException(error, stackTrace: stackTrace);
           debugPrint('Audio monitor error: $error');
         },
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      Sentry.captureException(e, stackTrace: stackTrace);
       debugPrint('Error starting audio monitor: $e');
+      rethrow;
     }
   }
 
   void _stopMonitoring() {
+    _staleAudioWatchdog?.cancel();
+    _staleAudioWatchdog = null;
+    _lastDecibelReadingTime = null;
     _audioSubscription?.cancel();
     _audioSubscription = null;
     _audioMonitor.stopMonitoring();
+  }
+
+  void _startStaleAudioWatchdog() {
+    _staleAudioWatchdog?.cancel();
+    _staleAudioWatchdog = Timer.periodic(const Duration(seconds: 2), (_) {
+      if (_lastDecibelReadingTime == null) return;
+      final elapsed = DateTime.now().difference(_lastDecibelReadingTime!);
+      if (elapsed >= _staleAudioTimeout) {
+        final error = AudioMonitorException(
+          'No audio readings received for ${elapsed.inSeconds}s — microphone may have stopped',
+        );
+        Sentry.captureException(error, stackTrace: StackTrace.current);
+        debugPrint('Stale audio detected: $error');
+        // Cancel watchdog to avoid spamming
+        _staleAudioWatchdog?.cancel();
+        _staleAudioWatchdog = null;
+      }
+    });
   }
 
   void _handleWarning(double intensity) {

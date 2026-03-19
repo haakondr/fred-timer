@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:noise_meter/noise_meter.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'audio_monitor.dart';
 
 /// Factory function for conditional import
@@ -45,14 +46,16 @@ class AudioMonitorMobile implements AudioMonitor {
         (NoiseReading reading) {
           _decibelController.add(reading.meanDecibel);
         },
-        onError: (error) {
-          _decibelController.addError(
-            AudioMonitorException('Noise meter error: $error'),
-          );
+        onError: (error, stackTrace) {
+          final exception = AudioMonitorException('Noise meter error: $error');
+          Sentry.captureException(exception, stackTrace: stackTrace);
+          _decibelController.addError(exception, stackTrace);
         },
       );
-    } catch (e) {
-      throw AudioMonitorException('Failed to start monitoring: $e');
+    } catch (e, stackTrace) {
+      final exception = AudioMonitorException('Failed to start monitoring: $e');
+      Sentry.captureException(exception, stackTrace: stackTrace);
+      throw exception;
     }
   }
 

@@ -30,7 +30,6 @@ class PrivacyPolicyScreen extends StatelessWidget {
               'No account required',
               'No analytics or tracking',
               'No advertisements',
-              'No third-party services',
               'No personal information collected',
             ],
           ),
@@ -59,12 +58,27 @@ class PrivacyPolicyScreen extends StatelessWidget {
               'Can be deleted by uninstalling the app',
             ],
           ),
-_buildSection(
+          _buildSection(
+            context,
+            icon: Icons.bug_report_outlined,
+            title: 'Error Reporting',
+            description:
+                'Fred uses Sentry to automatically report crashes and errors. This helps us fix bugs and improve the app. No personal data is included in error reports.',
+            bullets: [
+              'Error message and stack trace',
+              'App version and build number',
+              'Device type, OS version, and screen resolution',
+              'Breadcrumbs: recent app actions leading up to the error (e.g. navigation, button taps)',
+              'No audio data, microphone data, or personal information is sent',
+              'Reports are sent to Sentry (sentry.io), a third-party error tracking service',
+            ],
+          ),
+          _buildSection(
             context,
             icon: Icons.lock_outline,
             title: 'Data Security',
             description:
-                'Since Fred collects no personal data and operates entirely offline, there is no data to secure or transmit. All processing occurs locally on your device.',
+                'Fred collects no personal data. Audio processing occurs entirely on your device. Error reports sent to Sentry contain only technical information needed to diagnose issues.',
           ),
           _buildSection(
             context,
@@ -84,7 +98,7 @@ _buildSection(
           ),
           const SizedBox(height: 16),
           Text(
-            'Fred is a privacy-first app that operates entirely offline, collects no personal information, and uses your microphone only for real-time noise measurement while the timer runs.',
+            'Fred is a privacy-first app that collects no personal information, uses your microphone only for real-time noise measurement while the timer runs, and sends only anonymous error reports to help improve the app.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontStyle: FontStyle.italic,
                   color: AppColors.navy.withValues(alpha: 0.7),
