@@ -11,8 +11,8 @@ class AppSettings {
     this.hideThresholdButtons = false,
   });
 
-  /// Warning threshold is always 85% of the noise threshold
-  double get warningThreshold => noiseThreshold * 0.85;
+  /// Warning threshold is always 95% of the noise threshold
+  double get warningThreshold => noiseThreshold * 0.95;
 
   factory AppSettings.fromPreferences(SharedPreferences prefs) {
     return AppSettings(

@@ -14,6 +14,12 @@ class ConfettiPhysicsWorld {
   static const int maxActiveParticles = 200;
   static const int maxTotalParticles = 2000; // Allow larger pile to build up
 
+  // Drain hole support
+  static const double _maxDrainWidth = 78.6; // 20% of iPhone 16 Pro (393pt)
+  bool _drainOpen = false;
+  bool get drainOpen => _drainOpen;
+  List<box2d.Body> _groundBodies = [];
+
   ConfettiPhysicsWorld({required this.screenSize}) {
     // Create physics world with gravity (10 m/s² is realistic earth gravity)
     world = box2d.World(box2d.Vector2(0, 20.0));
@@ -44,8 +50,27 @@ class ConfettiPhysicsWorld {
     );
   }
 
+  double _currentDrainWidth = 0;
+
+  double get _drainWidth => _currentDrainWidth;
+
   void _createGround() {
-    // Place ground at the very bottom of the screen
+    _destroyGroundBodies();
+    if (_drainOpen) {
+      _createGroundWithDrain();
+    } else {
+      _createSolidGround();
+    }
+  }
+
+  void _destroyGroundBodies() {
+    for (final body in _groundBodies) {
+      world.destroyBody(body);
+    }
+    _groundBodies.clear();
+  }
+
+  void _createSolidGround() {
     final groundThickness = 100.0;
     final groundYPixels = screenSize.height + (groundThickness / 2);
 
@@ -58,12 +83,83 @@ class ConfettiPhysicsWorld {
     final groundBox = box2d.PolygonShape()
       ..setAsBox(_toPhysicsScalar(screenSize.width / 2), _toPhysicsScalar(groundThickness / 2), box2d.Vector2.zero(), 0);
 
-    final fixtureDef = box2d.FixtureDef(groundBox)
+    groundBody.createFixture(box2d.FixtureDef(groundBox)
       ..friction = 0.6
       ..restitution = 0.2
-      ..density = 0.0;
+      ..density = 0.0);
 
-    groundBody.createFixture(fixtureDef);
+    _groundBodies.add(groundBody);
+  }
+
+  void _createGroundWithDrain() {
+    final groundThickness = 100.0;
+    final groundYPixels = screenSize.height + (groundThickness / 2);
+    final drainW = _drainWidth;
+    final centerX = screenSize.width / 2;
+
+    // Left ground segment: from 0 to (center - drainW/2)
+    final leftWidth = centerX - drainW / 2;
+    if (leftWidth > 0) {
+      final leftDef = box2d.BodyDef()
+        ..position = _toPhysics(Offset(leftWidth / 2, groundYPixels))
+        ..type = box2d.BodyType.static;
+      final leftBody = world.createBody(leftDef);
+      final leftBox = box2d.PolygonShape()
+        ..setAsBox(_toPhysicsScalar(leftWidth / 2), _toPhysicsScalar(groundThickness / 2), box2d.Vector2.zero(), 0);
+      leftBody.createFixture(box2d.FixtureDef(leftBox)
+        ..friction = 0.6
+        ..restitution = 0.2
+        ..density = 0.0);
+      _groundBodies.add(leftBody);
+    }
+
+    // Right ground segment: from (center + drainW/2) to screenWidth
+    final rightWidth = screenSize.width - (centerX + drainW / 2);
+    if (rightWidth > 0) {
+      final rightX = centerX + drainW / 2 + rightWidth / 2;
+      final rightDef = box2d.BodyDef()
+        ..position = _toPhysics(Offset(rightX, groundYPixels))
+        ..type = box2d.BodyType.static;
+      final rightBody = world.createBody(rightDef);
+      final rightBox = box2d.PolygonShape()
+        ..setAsBox(_toPhysicsScalar(rightWidth / 2), _toPhysicsScalar(groundThickness / 2), box2d.Vector2.zero(), 0);
+      rightBody.createFixture(box2d.FixtureDef(rightBox)
+        ..friction = 0.6
+        ..restitution = 0.2
+        ..density = 0.0);
+      _groundBodies.add(rightBody);
+    }
+  }
+
+  /// Opens a drain hole in the bottom center.
+  /// [widthFraction] is the fraction of screen width (0.0 to 1.0).
+  /// For the warning drain, capped at [_maxDrainWidth].
+  /// For the reset drain, pass capWidth: false to allow full fraction.
+  void openDrain({double widthFraction = 0.2, bool capWidth = true}) {
+    final newWidth = capWidth
+        ? min(screenSize.width * widthFraction, _maxDrainWidth)
+        : screenSize.width * widthFraction;
+
+    // If drain is already open at the same or larger width, skip
+    if (_drainOpen && _currentDrainWidth >= newWidth) return;
+
+    _drainOpen = true;
+    _currentDrainWidth = newWidth;
+
+    // Wake up all frozen particles so they can fall through
+    for (var confetti in confettiBodies) {
+      if (confetti.body.bodyType == box2d.BodyType.static) {
+        confetti.body.setType(box2d.BodyType.dynamic);
+      }
+    }
+    _createGround();
+  }
+
+  void closeDrain() {
+    if (!_drainOpen) return;
+    _drainOpen = false;
+    _currentDrainWidth = 0;
+    _createGround();
   }
 
   void _createWalls() {
@@ -131,11 +227,27 @@ class ConfettiPhysicsWorld {
     // Step the physics simulation
     world.stepDt(dt);
 
+    // Remove confetti that fell through the drain
+    if (_drainOpen) {
+      _removeOffScreenConfetti();
+    }
+
     // Freeze particles that have settled (low velocity + many particles above)
     _freezeSettledParticles();
 
     // Note: We don't remove frozen particles - they stay visible as part of the pile
     // The spawning code in timer_screen.dart stops spawning when we hit maxTotalParticles
+  }
+
+  void _removeOffScreenConfetti() {
+    final maxY = (screenSize.height + 200) / pixelsPerMeter;
+    confettiBodies.removeWhere((confetti) {
+      if (confetti.body.position.y > maxY) {
+        world.destroyBody(confetti.body);
+        return true;
+      }
+      return false;
+    });
   }
 
   void _freezeSettledParticles() {

@@ -42,7 +42,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   bool _hasPermission = false;
   late double _noiseThreshold;
 
-  double get _warningThreshold => _noiseThreshold * 0.85;
+  double get _warningThreshold => _noiseThreshold * 0.95;
 
   // Sliding window for smoothing decibel readings
   final List<_DecibelReading> _decibelReadings = [];
@@ -59,6 +59,9 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   // Vibration tracking
   DateTime? _lastWarningVibrationTime;
   static const _warningVibrationInterval = Duration(milliseconds: 1000);
+
+  // Reset drain: waits for confetti to fall out before creating fresh world
+  Timer? _resetDrainTimer;
 
   // Stale audio watchdog — detect mic going silent
   Timer? _staleAudioWatchdog;
@@ -133,7 +136,9 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       setState(() {
         _hasPermission = hasPermission;
       });
-      if (!hasPermission) {
+      if (hasPermission) {
+        _startMonitoring();
+      } else {
         _startIntroConfetti();
       }
     }
@@ -231,6 +236,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     _stopMonitoring();
     _audioMonitor.dispose();
     _timer?.cancel();
+    _resetDrainTimer?.cancel();
     _confettiSpawnTimer?.cancel();
     _physicsUpdateTimer?.cancel();
     _confettiPhysics?.dispose();
@@ -512,7 +518,11 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     // Keep screen on while timer is running
     WakelockPlus.enable();
 
-    // Monitoring is already running from permission grant
+    // Ensure monitoring is running (may not be if app was killed and reopened)
+    if (_audioSubscription == null) {
+      _startMonitoring();
+    }
+
     // Clear readings for a fresh start
     _decibelReadings.clear();
     _longTermReadings.clear();
@@ -629,12 +639,24 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     });
     _resetAnimationController.forward(from: 0.0);
 
-    // Clear confetti on reset and restart spawning
+    // Stop spawning new confetti
     _confettiSpawnTimer?.cancel();
-    _confettiPhysics?.dispose();
-    final screenSize = MediaQuery.of(context).size;
-    _confettiPhysics = ConfettiPhysicsWorld(screenSize: screenSize);
-    _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 1000);
+
+    // Open a big drain (80% of screen width) to let all confetti fall out
+    _confettiPhysics?.openDrain(widthFraction: 0.8, capWidth: false);
+
+    // After confetti has drained, create fresh world and start spawning
+    _resetDrainTimer?.cancel();
+    _resetDrainTimer = Timer.periodic(const Duration(milliseconds: 200), (timer) {
+      if (_confettiPhysics == null || _confettiPhysics!.confettiBodies.isEmpty) {
+        timer.cancel();
+        _resetDrainTimer = null;
+        _confettiPhysics?.dispose();
+        final screenSize = MediaQuery.of(context).size;
+        _confettiPhysics = ConfettiPhysicsWorld(screenSize: screenSize);
+        _startConfettiSpawn(screenSize, particlesPerSpawn: 1, intervalMs: 1000);
+      }
+    });
   }
 
   void _checkConfettiMilestones() {
